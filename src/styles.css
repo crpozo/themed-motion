@@ -17,7 +17,11 @@
   --serif: "Barlow Condensed", "Oswald", "Inter", Helvetica, Arial, sans-serif;
   --sans: "Barlow", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  /* Real height of the fixed nav. Logo 64px + 2× 18px padding + 1px border ≈ 101px.
+     Banner uses this so it sits flush below the nav (no semi-transparent overlap). */
+  --nav-h: 100px;
 }
+@media (max-width: 720px) { :root { --nav-h: 84px; } }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -116,11 +120,13 @@ body {
 .banner {
   position: relative;
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - var(--nav-h));
   min-height: 560px;
-  margin-top: 60px;
+  margin-top: var(--nav-h);
   overflow: hidden;
-  background: #000;
+  /* Hero fallback: if the YouTube embed is slow/blocked the image still
+     fills the banner so the seam below the nav never looks empty. */
+  background: #000 url("assets/octopus-hero.png") center/cover no-repeat;
 }
 .banner .bg {
   position: absolute;
@@ -236,7 +242,7 @@ body {
 }
 @media (max-width: 800px) {
   .banner .copy { grid-template-columns: 1fr; }
-  .banner { height: 88vh; min-height: 560px; }
+  .banner { height: calc(88vh - var(--nav-h)); min-height: 480px; }
 }
 
 /* ---- Cast intro strip ---- */
