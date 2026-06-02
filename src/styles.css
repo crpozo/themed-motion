@@ -81,20 +81,86 @@ body {
   text-transform: uppercase;
 }
 @media (max-width: 1180px) { .nav .brand small { display: none; } }
-.nav-links {
-  display: flex; gap: 4px;
+/* Process tracker — a "you are here" indicator, not a page menu. It is wrapped
+   in a soft pill with a label so it reads as a progress widget, and it only
+   fades in once the visitor has scrolled past the hero (see .is-visible). */
+.nav-steps {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   list-style: none;
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 4px 4px 4px 0;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--rule-2);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity .35s ease, transform .35s ease;
 }
-.nav-links a {
+.nav-steps.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+.nav-steps .nav-steps-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 12px 0 14px;
+  border-right: 1px solid var(--rule);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.nav-steps a {
+  display: block;
   color: var(--ink-dim);
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  transition: color .2s ease, background .2s ease;
+}
+.nav-steps a:hover { color: var(--ink); }
+/* Pale-orange "current stage" highlight — more present than the old grey. */
+.nav-steps a.is-active {
+  background: rgba(242, 107, 31, 0.16);
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+/* Right-hand actions: real navigation, always visible */
+.nav-actions { display: flex; align-items: center; gap: 16px; }
+.nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.nav-back:hover { color: var(--accent); }
+.nav-back-arrow { font-size: 14px; line-height: 1; transition: transform .2s ease; }
+.nav-back:hover .nav-back-arrow { transform: translateX(-3px); }
+.nav-projects {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
   text-decoration: none;
   padding: 8px 12px;
   border-radius: 999px;
+  white-space: nowrap;
   transition: color .2s ease, background .2s ease;
 }
-.nav-links a:hover { color: var(--ink); background: var(--bg-2); }
-.nav-links a.is-active { color: var(--ink); background: var(--bg-2); }
+.nav-projects:hover { background: var(--bg-2); }
+.nav-projects.is-active { background: rgba(242, 107, 31, 0.16); color: var(--accent-2); }
 .nav-cta {
   font-family: var(--mono);
   font-size: 11px;
@@ -110,11 +176,21 @@ body {
 }
 .nav-cta:hover { background: var(--accent-2); }
 
-.nav-links a { padding: 6px 10px; }
-@media (max-width: 1280px) { .nav-links a:nth-child(2),
-                              .nav-links a:nth-child(5) { display: none; } }
-@media (max-width: 1100px) { .nav-links { display: none; } }
-@media (max-width: 540px) { .nav-cta { display: none; } }
+/* The process tracker is a desktop affordance; collapse it on narrower
+   screens where the sections are reached purely by scrolling. */
+@media (max-width: 1100px) { .nav-steps { display: none; } }
+@media (max-width: 760px) { .nav-back-label { display: none; } }
+/* On phones the wide logo + Projects + CTA already fill the bar, so the top
+   back affordance moves to the footer (always present) instead. */
+@media (max-width: 600px) { .nav-back { display: none; } }
+
+/* Footer "back to P&P" — discoverable on every screen size */
+.footer-back {
+  color: oklch(0.72 0 0);
+  text-decoration: none;
+  transition: color .2s ease;
+}
+.footer-back:hover { color: var(--accent); }
 
 /* ---- Video banner ---- */
 .banner {
@@ -141,7 +217,10 @@ body {
   height: 56.25vw; /* 16:9 */
   min-height: 100vh;
   min-width: calc(100vh * 16 / 9);
-  transform: translate(-50%, -50%);
+  /* Scale past "cover" so YouTube's top title bar and bottom chrome are pushed
+     outside the clipped banner — only the video itself stays visible. Combined
+     with pointer-events:none this keeps the embed looking like a clean reel. */
+  transform: translate(-50%, -50%) scale(1.4);
   border: 0;
   pointer-events: none;
 }
@@ -1477,12 +1556,23 @@ footer {
   /* Nav */
   .nav { padding: 10px 16px; gap: 12px; }
   .nav .brand-logo { height: 40px; }
-  .nav-links { display: none; }
+  .nav-actions { gap: 12px; }
   .nav-cta { display: inline-flex; padding: 9px 14px; font-size: 10px; letter-spacing: 0.12em; }
 
   /* Banner */
   .banner { height: auto; min-height: 0; aspect-ratio: 16 / 11; margin-top: 56px; }
-  .banner iframe { width: 100%; height: 100%; min-width: 0; min-height: 0; left: 0; top: 0; transform: none; }
+  /* Cover the 16/11 banner with the 16/9 reel (height-matched, sides overflow)
+     and scale up so YouTube's title bar / chrome is cropped on mobile too. */
+  .banner iframe {
+    left: 50%;
+    top: 50%;
+    width: 122.3vw;
+    height: 68.75vw;
+    min-width: 0;
+    min-height: 0;
+    transform: translate(-50%, -50%) scale(1.55);
+  }
+  .nav-steps { display: none; }
   .banner .copy { gap: 12px; padding: 0 18px; }
   .banner h1 { font-size: clamp(34px, 9vw, 54px); max-width: 14ch; }
   .banner .lede { font-size: 14px; }
@@ -1679,15 +1769,8 @@ footer {
 .proj-tile:hover .proj-explore,
 .proj-tile:focus-visible .proj-explore { transform: none; opacity: 1; }
 
-/* Projects nav link colour + keep it reachable when the section chips collapse */
-.nav-links a.nav-projects { color: var(--ink); }
 @media (max-width: 1000px) and (min-width: 761px) {
   .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 1100px) {
-  .nav-links { display: flex; gap: 4px; }
-  .nav-links li { display: none; }
-  .nav-links li:last-child { display: block; }
 }
 @media (max-width: 760px) {
   .portfolio-head { padding: calc(var(--nav-h) + 40px) 22px 28px; }
@@ -1695,4 +1778,15 @@ footer {
   .portfolio-grid { grid-template-columns: 1fr; gap: 12px; }
   .proj-overlay { opacity: 1; background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,0) 62%); }
   .proj-explore { opacity: 1; transform: none; }
+}
+
+/* Phone nav fit: logo + Projects + Start-a-project must share a narrow bar.
+   Compact them and drop the top back affordance (it lives in the footer). */
+@media (max-width: 600px) {
+  .nav { gap: 8px; }
+  .nav .brand-logo { height: 32px; }
+  .nav-back { display: none; }
+  .nav-actions { gap: 9px; }
+  .nav-projects { font-size: 11px; padding: 7px 9px; letter-spacing: 0.06em; }
+  .nav-cta { padding: 8px 12px; font-size: 9px; letter-spacing: 0.06em; }
 }

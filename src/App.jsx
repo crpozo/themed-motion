@@ -63,29 +63,65 @@ function useHashRoute() {
   return hash;
 }
 
+// Parent P&P Projects site — the "back" affordance pairs with the link they
+// add on their side pointing into this experience.
+const PP_PROJECTS_URL = 'https://www.ppprojects.com/';
+
+// True once the visitor has scrolled past the hero. Used to reveal the process
+// tracker only after they've started moving through the page.
+function useScrolled(factor = 0.6) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * factor);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [factor]);
+  return scrolled;
+}
+
 function Nav({ route }) {
   const onProjects = route === '#/projects';
   const active = useActive(SECTIONS.map((s) => s.id));
+  const scrolled = useScrolled();
+  // The tracker is a "you are here" indicator for the process — show it only on
+  // the home page and only once the hero has been scrolled past.
+  const showSteps = scrolled && !onProjects;
   return (
     <nav className="nav">
       <a className="brand" href="#top" aria-label="ThemedMotion home">
         <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
       </a>
-      <ul className="nav-links">
+
+      <ul
+        className={'nav-steps' + (showSteps ? ' is-visible' : '')}
+        aria-label="Process — scroll to move through each stage"
+        aria-hidden={!showSteps}
+      >
+        <li className="nav-steps-label" aria-hidden="true">Our process</li>
         {SECTIONS.map((s) => (
           <li key={s.id}>
-            <a href={'#' + s.id} className={!onProjects && active === s.id ? 'is-active' : ''}>
+            <a
+              href={'#' + s.id}
+              className={active === s.id ? 'is-active' : ''}
+              tabIndex={showSteps ? 0 : -1}
+            >
               {s.label}
             </a>
           </li>
         ))}
-        <li>
-          <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
-            Projects
-          </a>
-        </li>
       </ul>
-      <a className="nav-cta" href="#contact">Start a project →</a>
+
+      <div className="nav-actions">
+        <a className="nav-back" href={PP_PROJECTS_URL} aria-label="Back to P&P Projects" title="Back to P&P Projects">
+          <span className="nav-back-arrow" aria-hidden="true">←</span>
+          <span className="nav-back-label">P&amp;P Projects</span>
+        </a>
+        <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
+          Projects
+        </a>
+        <a className="nav-cta" href="#contact">Start a project →</a>
+      </div>
     </nav>
   );
 }
@@ -94,11 +130,12 @@ function Banner() {
   return (
     <section className="banner" id="top">
       <iframe
-        src="https://www.youtube.com/embed/Xd1TWkdMRRs?si=cGMiapXvp-H1eiuv&autoplay=1&mute=1&loop=1&playlist=Xd1TWkdMRRs&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3"
+        src="https://www.youtube-nocookie.com/embed/Xd1TWkdMRRs?autoplay=1&mute=1&loop=1&playlist=Xd1TWkdMRRs&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0"
         title="ThemedMotion reel"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
+        tabIndex={-1}
+        aria-hidden="true"
       />
       <div className="copy">
         <div>
@@ -618,6 +655,7 @@ function Home() {
 
       <footer>
         <div>© 2026 P&amp;P Projects B.V.</div>
+        <a className="footer-back" href={PP_PROJECTS_URL}>← Back to P&amp;P Projects</a>
         <div>ThemedMotion</div>
       </footer>
     </>
@@ -676,6 +714,7 @@ function Projects() {
       </section>
       <footer>
         <div>© 2026 P&amp;P Projects B.V.</div>
+        <a className="footer-back" href={PP_PROJECTS_URL}>← Back to P&amp;P Projects</a>
         <div>ThemedMotion</div>
       </footer>
     </>
