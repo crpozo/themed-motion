@@ -47,7 +47,24 @@ function useActive(ids) {
   return active;
 }
 
-function Nav() {
+// Minimal hash router. Only `#/...` paths (e.g. `#/projects`) switch the view;
+// bare fragment anchors like `#concept` keep the home page and let the browser
+// scroll natively. Relative `assets/...` URLs keep working because the real
+// path is always the site root.
+function useHashRoute() {
+  const [hash, setHash] = useState(() =>
+    typeof window !== 'undefined' ? window.location.hash : '',
+  );
+  useEffect(() => {
+    const onChange = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', onChange);
+    return () => window.removeEventListener('hashchange', onChange);
+  }, []);
+  return hash;
+}
+
+function Nav({ route }) {
+  const onProjects = route === '#/projects';
   const active = useActive(SECTIONS.map((s) => s.id));
   return (
     <nav className="nav">
@@ -57,11 +74,16 @@ function Nav() {
       <ul className="nav-links">
         {SECTIONS.map((s) => (
           <li key={s.id}>
-            <a href={'#' + s.id} className={active === s.id ? 'is-active' : ''}>
+            <a href={'#' + s.id} className={!onProjects && active === s.id ? 'is-active' : ''}>
               {s.label}
             </a>
           </li>
         ))}
+        <li>
+          <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
+            Projects
+          </a>
+        </li>
       </ul>
       <a className="nav-cta" href="#contact">Start a project →</a>
     </nav>
@@ -263,11 +285,26 @@ function VideoStage({ src, tag }) {
   );
 }
 
-export default function App() {
+function Home() {
   useReveal();
+  // When arriving on the home page with a section fragment (e.g. coming back
+  // from the Projects page via a nav link), scroll that section into view.
+  // Retry a couple of times because the hero iframe and stage images grow the
+  // page after first paint, which would otherwise leave us scrolled short.
+  useEffect(() => {
+    const h = window.location.hash;
+    if (!h || h.length <= 1 || h.startsWith('#/')) return;
+    const id = h.slice(1);
+    const scroll = () => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView();
+    };
+    scroll();
+    const timers = [setTimeout(scroll, 250), setTimeout(scroll, 700)];
+    return () => timers.forEach(clearTimeout);
+  }, []);
   return (
     <>
-      <Nav />
       <Banner />
 
       {/* CONCEPT */}
@@ -583,6 +620,75 @@ export default function App() {
         <div>© 2026 P&amp;P Projects B.V.</div>
         <div>ThemedMotion</div>
       </footer>
+    </>
+  );
+}
+
+const PROJECTS = [
+  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character' },
+  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure' },
+  { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
+  { img: 'peek-animatronic.png', name: 'The Guardian', cat: 'Full-body figure' },
+  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware' },
+  { img: 'joey-front.png', name: 'Joey · Finish', cat: 'Paint & silicone' },
+  { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis' },
+  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation' },
+];
+
+function Projects() {
+  useReveal();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  return (
+    <>
+      <header className="portfolio-head">
+        <div className="reveal">
+          <div className="kicker">Selected work · 2016—2026</div>
+          <h1>Projects.</h1>
+          <p className="head-sub">
+            A one-stop shop for the entire leisure industry — characters, show
+            figures and custom show-action mechanisms, built end to end in our
+            studio. A selection of the figures we've brought to life.
+          </p>
+        </div>
+      </header>
+      <section className="portfolio">
+        <div className="portfolio-grid">
+          {PROJECTS.map((p, i) => (
+            <a
+              key={p.img}
+              className={'proj-tile reveal' + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
+              href="#contact"
+              aria-label={`${p.name} — ${p.cat}`}
+            >
+              <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
+              <div className="proj-overlay">
+                <div className="proj-meta">
+                  <div className="proj-cat">{p.cat}</div>
+                  <div className="proj-name">{p.name}</div>
+                </div>
+                <span className="proj-explore">Explore →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+      <footer>
+        <div>© 2026 P&amp;P Projects B.V.</div>
+        <div>ThemedMotion</div>
+      </footer>
+    </>
+  );
+}
+
+export default function App() {
+  const route = useHashRoute();
+  const onProjects = route === '#/projects';
+  return (
+    <>
+      <Nav route={route} />
+      {onProjects ? <Projects /> : <Home />}
     </>
   );
 }
