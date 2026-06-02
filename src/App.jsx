@@ -119,7 +119,7 @@ function Nav({ route }) {
         <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
           Projects
         </a>
-        <a className="nav-cta" href="#contact">Start a project →</a>
+        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Start a project →</a>
       </div>
     </nav>
   );
@@ -318,6 +318,112 @@ function VideoStage({ src, tag }) {
       )}
       <div className="rotate3d-tag">{tag}</div>
     </div>
+  );
+}
+
+// Smoothly scroll to the contact section on the current page (it is rendered on
+// both Home and Projects), so "#contact" links never switch routes.
+function scrollToContact(e) {
+  const el = document.getElementById('contact');
+  if (el) {
+    e.preventDefault();
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Shared contact section — rendered identically on Home and Projects, so any
+// edit here reflects on both pages.
+function Contact() {
+  return (
+    <section className="contact" id="contact">
+      <div className="contact-inner">
+        <div className="reveal">
+          <div className="kicker">Chapter 07 · Start a project</div>
+          <h2>Tell us about the <em>moment</em> you want to build.</h2>
+          <p className="lede">
+            A queue-line meet, a finale figure, a custom show-action mechanism — drop a few lines below and we'll be in touch within 48 hours with a calendar link and some honest questions.
+          </p>
+          <div className="info">
+            <div className="row"><span className="k">Studio</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
+            <div className="row"><span className="k">Email</span><span className="v">info@ppprojects.com</span></div>
+            <div className="row"><span className="k">Phone</span><span className="v">+31 0493 694 511</span></div>
+            <div className="row"><span className="k">Hours</span><span className="v">Mon–Fri · 09:00–17:30 CET</span></div>
+          </div>
+        </div>
+        <div className="form-wrap reveal d1">
+          <div className="peek">
+            <div className="speech">Psst — over here.</div>
+            <img src="assets/peek-animatronic.png" alt="" />
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              alert('Thanks! We’ll be in touch within 48 hours.');
+            }}
+          >
+            <div className="form-title">Brief us in 60 seconds</div>
+            <div className="form-sub">No NDA needed yet</div>
+            <div className="row-2">
+              <div className="field">
+                <label htmlFor="cn">Your name</label>
+                <input id="cn" type="text" placeholder="Jane Doe" required />
+              </div>
+              <div className="field">
+                <label htmlFor="cc">Company</label>
+                <input id="cc" type="text" placeholder="Studio / venue" />
+              </div>
+            </div>
+            <div className="field">
+              <label htmlFor="ce">Email</label>
+              <input id="ce" type="email" placeholder="you@studio.com" required />
+            </div>
+            <div className="row-2">
+              <div className="field">
+                <label htmlFor="ct">Project type</label>
+                <select id="ct" defaultValue="">
+                  <option value="" disabled>Select…</option>
+                  <option>Queue-line character</option>
+                  <option>Show / finale figure</option>
+                  <option>Custom show-action equipment</option>
+                  <option>Refurbish / re-program</option>
+                  <option>Not sure yet</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="cb">Budget range</label>
+                <select id="cb" defaultValue="">
+                  <option value="" disabled>Select…</option>
+                  <option>Under €50k</option>
+                  <option>€50k – €150k</option>
+                  <option>€150k – €500k</option>
+                  <option>€500k+</option>
+                  <option>Need guidance</option>
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <label htmlFor="cm">The moment you want to build</label>
+              <textarea id="cm" placeholder="A child meets a sea creature in a queue line…"></textarea>
+            </div>
+            <button type="submit" className="cta-btn">
+              Send brief <span className="arrow">→</span>
+            </button>
+            <div className="form-foot">We reply within 48 hours · Your brief stays with us</div>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Shared site footer
+function SiteFooter() {
+  return (
+    <footer>
+      <div>© 2026 P&amp;P Projects B.V.</div>
+      <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
+      <div>ThemedMotion</div>
+    </footer>
   );
 }
 
@@ -573,90 +679,9 @@ function Home() {
       </section>
 
       {/* CONTACT */}
-      <section className="contact" id="contact">
-        <div className="contact-inner">
-          <div className="reveal">
-            <div className="kicker">Chapter 07 · Start a project</div>
-            <h2>Tell us about the <em>moment</em> you want to build.</h2>
-            <p className="lede">
-              A queue-line meet, a finale figure, a custom show-action mechanism — drop a few lines below and we'll be in touch within 48 hours with a calendar link and some honest questions.
-            </p>
-            <div className="info">
-              <div className="row"><span className="k">Studio</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
-              <div className="row"><span className="k">Email</span><span className="v">info@ppprojects.com</span></div>
-              <div className="row"><span className="k">Phone</span><span className="v">+31 0493 694 511</span></div>
-              <div className="row"><span className="k">Hours</span><span className="v">Mon–Fri · 09:00–17:30 CET</span></div>
-            </div>
-          </div>
-          <div className="form-wrap reveal d1">
-            <div className="peek">
-              <div className="speech">Psst — over here.</div>
-              <img src="assets/peek-animatronic.png" alt="" />
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert('Thanks! We’ll be in touch within 48 hours.');
-              }}
-            >
-              <div className="form-title">Brief us in 60 seconds</div>
-              <div className="form-sub">No NDA needed yet</div>
-              <div className="row-2">
-                <div className="field">
-                  <label htmlFor="cn">Your name</label>
-                  <input id="cn" type="text" placeholder="Jane Doe" required />
-                </div>
-                <div className="field">
-                  <label htmlFor="cc">Company</label>
-                  <input id="cc" type="text" placeholder="Studio / venue" />
-                </div>
-              </div>
-              <div className="field">
-                <label htmlFor="ce">Email</label>
-                <input id="ce" type="email" placeholder="you@studio.com" required />
-              </div>
-              <div className="row-2">
-                <div className="field">
-                  <label htmlFor="ct">Project type</label>
-                  <select id="ct" defaultValue="">
-                    <option value="" disabled>Select…</option>
-                    <option>Queue-line character</option>
-                    <option>Show / finale figure</option>
-                    <option>Custom show-action equipment</option>
-                    <option>Refurbish / re-program</option>
-                    <option>Not sure yet</option>
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="cb">Budget range</label>
-                  <select id="cb" defaultValue="">
-                    <option value="" disabled>Select…</option>
-                    <option>Under €50k</option>
-                    <option>€50k – €150k</option>
-                    <option>€150k – €500k</option>
-                    <option>€500k+</option>
-                    <option>Need guidance</option>
-                  </select>
-                </div>
-              </div>
-              <div className="field">
-                <label htmlFor="cm">The moment you want to build</label>
-                <textarea id="cm" placeholder="A child meets a sea creature in a queue line…"></textarea>
-              </div>
-              <button type="submit" className="cta-btn">
-                Send brief <span className="arrow">→</span>
-              </button>
-              <div className="form-foot">We reply within 48 hours · Your brief stays with us</div>
-            </form>
-          </div>
-        </div>
-      </section>
+      <Contact />
 
-      <footer>
-        <div>© 2026 P&amp;P Projects B.V.</div>
-        <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
-        <div>ThemedMotion</div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }
@@ -705,6 +730,7 @@ function Projects() {
               key={p.img}
               className={'proj-tile reveal' + (p.wide ? ' proj-wide' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
               href="#contact"
+              onClick={scrollToContact}
               data-index={String(i + 1).padStart(2, '0')}
               aria-label={`${p.name} — ${p.cat}`}
             >
@@ -719,16 +745,9 @@ function Projects() {
         </div>
       </section>
 
-      <section className="portfolio-cta">
-        <h2>Let's build yours.</h2>
-        <a href="#contact">Start a project →</a>
-      </section>
+      <Contact />
 
-      <footer>
-        <div>© 2026 P&amp;P Projects B.V.</div>
-        <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
-        <div>ThemedMotion</div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }
