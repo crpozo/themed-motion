@@ -98,7 +98,6 @@ function Nav({ route }) {
         aria-label="Process — scroll to move through each stage"
         aria-hidden={!showSteps}
       >
-        <li className="nav-steps-label" aria-hidden="true">Our process</li>
         {SECTIONS.map((s) => (
           <li key={s.id}>
             <a
@@ -663,14 +662,14 @@ function Home() {
 }
 
 const PROJECTS = [
-  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character' },
-  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure' },
-  { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
+  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character', wide: true },
+  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure', wide: true },
+  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware', wide: true },
   { img: 'peek-animatronic.png', name: 'The Guardian', cat: 'Full-body figure' },
-  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware' },
+  { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
   { img: 'joey-front.png', name: 'Joey · Finish', cat: 'Paint & silicone' },
+  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation', wide: true },
   { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis' },
-  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation' },
 ];
 
 function Projects() {
@@ -681,37 +680,50 @@ function Projects() {
   return (
     <>
       <header className="portfolio-head">
-        <div className="reveal">
+        <div className="portfolio-head-bg" aria-hidden="true"></div>
+        <div className="portfolio-head-inner reveal">
           <div className="kicker">Selected work · 2016—2026</div>
           <h1>Projects.</h1>
           <p className="head-sub">
-            A one-stop shop for the entire leisure industry — characters, show
-            figures and custom show-action mechanisms, built end to end in our
-            studio. A selection of the figures we've brought to life.
+            Characters, show figures and custom show-action mechanisms — designed,
+            engineered and built end to end in our studio for theme parks, museums
+            and brand experiences around the world.
           </p>
+          <div className="portfolio-tags">
+            <span>Theme parks</span>
+            <span>Museums</span>
+            <span>Brand experiences</span>
+            <span>Live shows</span>
+          </div>
         </div>
       </header>
+
       <section className="portfolio">
         <div className="portfolio-grid">
           {PROJECTS.map((p, i) => (
             <a
               key={p.img}
-              className={'proj-tile reveal' + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
+              className={'proj-tile reveal' + (p.wide ? ' proj-wide' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
               href="#contact"
+              data-index={String(i + 1).padStart(2, '0')}
               aria-label={`${p.name} — ${p.cat}`}
             >
               <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
+              <span className="proj-explore">Explore →</span>
               <div className="proj-overlay">
-                <div className="proj-meta">
-                  <div className="proj-cat">{p.cat}</div>
-                  <div className="proj-name">{p.name}</div>
-                </div>
-                <span className="proj-explore">Explore →</span>
+                <div className="proj-cat">{p.cat}</div>
+                <div className="proj-name">{p.name}</div>
               </div>
             </a>
           ))}
         </div>
       </section>
+
+      <section className="portfolio-cta">
+        <h2>Let's build yours.</h2>
+        <a href="#contact">Start a project →</a>
+      </section>
+
       <footer>
         <div>© 2026 P&amp;P Projects B.V.</div>
         <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
