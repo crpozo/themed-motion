@@ -117,9 +117,9 @@ function Nav({ route }) {
           <span className="nav-back-arrow" aria-hidden="true">↗</span>
         </a>
         <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
-          Projects
+          Work
         </a>
-        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Start a project →</a>
+        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Get in touch →</a>
       </div>
     </nav>
   );
