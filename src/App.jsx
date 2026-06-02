@@ -113,7 +113,7 @@ function Nav({ route }) {
       </ul>
 
       <div className="nav-actions">
-        <a className="nav-back" href={PP_PROJECTS_URL} aria-label="Back to P&P Projects" title="Back to P&P Projects">
+        <a className="nav-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer" aria-label="Back to P&P Projects" title="Back to P&P Projects">
           <span className="nav-back-arrow" aria-hidden="true">←</span>
           <span className="nav-back-label">P&amp;P Projects</span>
         </a>
@@ -655,7 +655,7 @@ function Home() {
 
       <footer>
         <div>© 2026 P&amp;P Projects B.V.</div>
-        <a className="footer-back" href={PP_PROJECTS_URL}>← Back to P&amp;P Projects</a>
+        <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
         <div>ThemedMotion</div>
       </footer>
     </>
@@ -714,7 +714,7 @@ function Projects() {
       </section>
       <footer>
         <div>© 2026 P&amp;P Projects B.V.</div>
-        <a className="footer-back" href={PP_PROJECTS_URL}>← Back to P&amp;P Projects</a>
+        <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">← Back to P&amp;P Projects</a>
         <div>ThemedMotion</div>
       </footer>
     </>
