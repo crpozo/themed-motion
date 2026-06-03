@@ -998,6 +998,11 @@ section { position: relative; }
 .contact .field textarea { min-height: 84px; }
 .contact .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.5) 50%), linear-gradient(135deg, rgba(255,255,255,0.5) 50%, transparent 50%); background-position: calc(100% - 14px) center, calc(100% - 9px) center; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
 .contact .field select option { background: var(--ink); color: var(--bg); }
+/* Placeholders: softer + warmer than the mono labels (which sit at .55 white) */
+.contact .field input::placeholder,
+.contact .field textarea::placeholder { color: rgba(245, 238, 230, 0.32); opacity: 1; }
+/* Select shows its disabled "Select…" option in the same soft tone until chosen */
+.contact .field select:has(option[value=""]:checked) { color: rgba(245, 238, 230, 0.32); }
 .contact .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .contact button.cta-btn {
   margin-top: 12px;
@@ -2047,17 +2052,23 @@ html { scroll-padding-top: var(--nav-h); scroll-snap-type: y proximity; }
   .finishing-inner { padding: 80px 22px 64px; }
 }
 
-/* ---- Contact: Mormel floating character + bobbing paw ---- */
-.contact .peek-mormel { width: 190px; }
+/* ---- Contact: Mormel gripping the top edge of the form box ---- */
+.contact .form-wrap { padding-top: 104px; }
+.contact .peek-mormel {
+  width: 200px;
+  top: 2px;
+  right: -6px;
+  animation: none;            /* anchored, not floating — it holds the box */
+}
 .contact .peek-mormel .peek-base { width: 100%; height: auto; display: block; transform: none; }
 .contact .peek-mormel .peek-paw {
   position: absolute; inset: 0; width: 100%; height: auto; transform: none;
   animation: paw-bob 1.6s ease-in-out infinite;
 }
-@keyframes paw-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes paw-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 @media (prefers-reduced-motion: reduce) {
   .contact .peek-mormel .peek-paw { animation: none; }
 }
 @media (max-width: 760px) {
-  .contact .peek-mormel { width: 130px; }
+  .contact .peek-mormel { width: 140px; }
 }
