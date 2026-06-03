@@ -362,7 +362,7 @@ function UkkieStage() {
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) el.classList.add('is-active'); },
+      ([e]) => { if (e.isIntersecting) { el.classList.add('is-active'); io.disconnect(); } },
       { threshold: 0.35 },
     );
     io.observe(el);
@@ -435,7 +435,7 @@ function FinishingSection({ beats }) {
         loop
         playsInline
         preload="none"
-        poster="assets/joey-front.png"
+        poster="assets/finishing-poster.jpg"
         aria-hidden="true"
       />
       <div className="finishing-scrim" aria-hidden="true"></div>
