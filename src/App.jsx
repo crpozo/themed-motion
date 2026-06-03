@@ -119,7 +119,7 @@ function Nav({ route }) {
         <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
           Work
         </a>
-        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Let's talk →</a>
+        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Let's Make It Move →</a>
       </div>
     </nav>
   );
