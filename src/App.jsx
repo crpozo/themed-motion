@@ -82,34 +82,11 @@ function useScrolled(factor = 0.6) {
 
 function Nav({ route }) {
   const onProjects = route === '#/projects';
-  const active = useActive(SECTIONS.map((s) => s.id));
-  const scrolled = useScrolled();
-  // The tracker is a "you are here" indicator for the process — show it only on
-  // the home page and only once the hero has been scrolled past.
-  const showSteps = scrolled && !onProjects;
   return (
     <nav className="nav">
       <a className="brand" href="#top" aria-label="ThemedMotion home">
         <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
       </a>
-
-      <ul
-        className={'nav-steps' + (showSteps ? ' is-visible' : '')}
-        aria-label="Process — scroll to move through each stage"
-        aria-hidden={!showSteps}
-      >
-        {SECTIONS.map((s) => (
-          <li key={s.id}>
-            <a
-              href={'#' + s.id}
-              className={active === s.id ? 'is-active' : ''}
-              tabIndex={showSteps ? 0 : -1}
-            >
-              {s.label}
-            </a>
-          </li>
-        ))}
-      </ul>
 
       <div className="nav-actions">
         <a className="nav-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer" aria-label="Go to P&P Projects (opens in a new tab)" title="P&P Projects">
@@ -121,6 +98,39 @@ function Nav({ route }) {
         </a>
         <a className="nav-cta" href="#contact" onClick={scrollToContact}>Let's Make It Move →</a>
       </div>
+    </nav>
+  );
+}
+
+// Vertical section slider on the right edge — a "you are here" dot rail that
+// tracks scroll and jumps to a section on click. Home only, desktop only.
+function SideNav({ route }) {
+  const items = [{ id: 'top', label: 'Intro' }, ...SECTIONS, { id: 'contact', label: 'Contact' }];
+  const active = useActive(items.map((i) => i.id));
+  const scrolled = useScrolled(0.5);
+  if (route === '#/projects') return null;
+  const go = (e, id) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  return (
+    <nav className={'sidenav' + (scrolled ? ' is-visible' : '')} aria-label="Section navigation">
+      <ul>
+        {items.map((s) => (
+          <li key={s.id}>
+            <a
+              href={'#' + s.id}
+              className={active === s.id ? 'is-active' : ''}
+              onClick={(e) => go(e, s.id)}
+              aria-current={active === s.id ? 'true' : undefined}
+            >
+              <span className="sidenav-name">{s.label}</span>
+              <span className="sidenav-dot" aria-hidden="true"></span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }
@@ -782,6 +792,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
+      <SideNav route={route} />
       {onProjects ? <Projects /> : <Home />}
     </>
   );
