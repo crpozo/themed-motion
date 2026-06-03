@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SoftSketch } from './Sketches.jsx';
+import ukkieModelSvg from './ukkie-simplified.svg?raw';
 
 function useReveal() {
   useEffect(() => {
@@ -18,14 +19,13 @@ function useReveal() {
 }
 
 const SECTIONS = [
-  { id: 'concept', label: 'Concept' },
   { id: 'design', label: 'Design' },
-  { id: 'mechanical', label: 'Mechanical' },
-  { id: 'controls', label: 'Analysis' },
-  { id: 'motors', label: 'Motor' },
-  { id: 'hardware', label: 'Hardware' },
+  { id: 'engineering', label: 'Engineering' },
+  { id: 'analysis', label: 'Analysis' },
+  { id: 'actuators', label: 'Actuators' },
+  { id: 'control', label: 'Control' },
   { id: 'animation', label: 'Animation' },
-  { id: 'software', label: 'Software' },
+  { id: 'finishing', label: 'Finishing' },
 ];
 
 function useActive(ids) {
@@ -119,7 +119,7 @@ function Nav({ route }) {
         <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
           Work
         </a>
-        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Get in touch →</a>
+        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Let's Make It Move →</a>
       </div>
     </nav>
   );
@@ -128,6 +128,7 @@ function Nav({ route }) {
 function Banner() {
   return (
     <section className="banner" id="top">
+      <img className="banner-fallback" src="assets/octopus-hero.png" alt="" aria-hidden="true" />
       <iframe
         src="https://www.youtube-nocookie.com/embed/Xd1TWkdMRRs?autoplay=1&mute=1&loop=1&playlist=Xd1TWkdMRRs&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0"
         title="ThemedMotion reel"
@@ -138,7 +139,8 @@ function Banner() {
       />
       <div className="copy">
         <div>
-          <h1>Bringing your ideas to life through <em>Animatronics</em>.</h1>
+          <h1>Quality motion for <em>powerful stories</em>.</h1>
+          <p className="banner-sub">Animatronics, animated figures and show action equipment</p>
         </div>
       </div>
       <div className="scroll-cue">
@@ -321,6 +323,144 @@ function VideoStage({ src, tag }) {
   );
 }
 
+// Unified storytelling section: number + chapter + title and the beats live in
+// one column, the visual fills the other — sized so the whole section reads in a
+// single viewport (per the dossier's "see everything at once" note).
+function Section({ id, num, chapter, title, em, beats, visual, flip }) {
+  return (
+    <section className={'sec' + (flip ? ' flip' : '')} id={id}>
+      <div className="sec-visual">{visual}</div>
+      <div className="sec-panel">
+        <div className="sec-head reveal">
+          <div className="sec-num">{num}<span>/ 07</span></div>
+          <div className="sec-kicker">{chapter}</div>
+          <h2 className="sec-title">{title} <em>{em}</em></h2>
+        </div>
+        <div className="sec-beats reveal d1">
+          {beats.map((b, i) => (
+            <div className="beat" key={i}>
+              <div className="beat-idx">{String(i + 1).padStart(2, '0')} / {String(beats.length).padStart(2, '0')}</div>
+              <div className="beat-body">
+                <h3>{b.h}</h3>
+                <p>{b.p}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Design-section visual: the Ukkie line "sketch" fills in to a coloured model,
+// then gently turns on a turntable. Uses the supplied simplified SVG inline so
+// the fill can animate (stroke = sketch, fill = model) without shipping the
+// heavy generated transition CSS.
+function UkkieStage() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) el.classList.add('is-active'); },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div className="ukkie-stage" ref={ref}>
+      <div className="ukkie-svg" dangerouslySetInnerHTML={{ __html: ukkieModelSvg }} />
+      <div className="ukkie-floor" aria-hidden="true"></div>
+      <div className="ukkie-tag">UKKIE · SKETCH → MODEL</div>
+    </div>
+  );
+}
+
+// Animation-section visual: an artsy, abstract representation of motion curves on
+// a timeline (we can't show the real CritterControl software for IP reasons).
+function CurvesVisual() {
+  return (
+    <div className="curves-stage">
+      <svg className="curves-svg" viewBox="0 0 600 440" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g className="curves-grid">
+          {[80, 160, 240, 320].map((y) => <line key={y} x1="40" y1={y} x2="560" y2={y} />)}
+          {[120, 240, 360, 480].map((x) => <line key={x} x1={x} y1="50" x2={x} y2="360" className="v" />)}
+        </g>
+        <path className="curve c1" d="M40 250 C 150 110, 250 300, 350 180 S 520 120, 560 220" />
+        <path className="curve c2" d="M40 180 C 140 240, 240 130, 340 250 S 500 280, 560 170" />
+        <g className="curve-keys">
+          {[[40,250],[180,150],[350,180],[480,150],[560,220]].map(([x,y],i)=>(
+            <rect key={i} x={x-4} y={y-4} width="8" height="8" transform={`rotate(45 ${x} ${y})`} />
+          ))}
+        </g>
+        <line className="curves-playhead" x1="0" y1="44" x2="0" y2="366" />
+        <g className="curves-ruler">
+          {[0,1,2,3,4,5].map((s)=>(<text key={s} x={40 + s*104} y="392">0{s}s</text>))}
+        </g>
+      </svg>
+      <div className="rotate3d-tag">CRITTERCONTROL · ANIMATION TOOL</div>
+    </div>
+  );
+}
+
+// Figure-finishing: cinematic full-bleed background video with a dark filter and
+// the copy on top. Video is lazy-loaded/played only when the section is near the
+// viewport to keep the page light.
+function FinishingSection({ beats }) {
+  const vref = useRef(null);
+  useEffect(() => {
+    const v = vref.current;
+    if (!v) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing.mp4');
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      { rootMargin: '400px 0px' },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <section className="finishing" id="finishing">
+      <video
+        ref={vref}
+        className="finishing-video"
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster="assets/joey-front.png"
+        aria-hidden="true"
+      />
+      <div className="finishing-scrim" aria-hidden="true"></div>
+      <div className="finishing-inner">
+        <div className="sec-head reveal">
+          <div className="sec-num">07<span>/ 07</span></div>
+          <div className="sec-kicker">Finishing</div>
+          <h2 className="sec-title">And then it <em>comes to life.</em></h2>
+        </div>
+        <div className="sec-beats finishing-beats reveal d1">
+          {beats.map((b, i) => (
+            <div className="beat" key={i}>
+              <div className="beat-idx">{String(i + 1).padStart(2, '0')} / {String(beats.length).padStart(2, '0')}</div>
+              <div className="beat-body">
+                <h3>{b.h}</h3>
+                <p>{b.p}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // Smoothly scroll to the contact section on the current page (it is rendered on
 // both Home and Projects), so "#contact" links never switch routes.
 function scrollToContact(e) {
@@ -338,10 +478,10 @@ function Contact() {
     <section className="contact" id="contact">
       <div className="contact-inner">
         <div className="reveal">
-          <div className="kicker">Chapter 07 · Start a project</div>
-          <h2>Tell us about the <em>moment</em> you want to build.</h2>
+          <div className="kicker">Contact · Let's make it move</div>
+          <h2>Now, we'd love to make it <em>move.</em></h2>
           <p className="lede">
-            A queue-line meet, a finale figure, a custom show-action mechanism — drop a few lines below and we'll be in touch within 48 hours with a calendar link and some honest questions.
+            A queue-line character, a dark ride animatronic, a stunt figure, a parade character, a creature effect, a custom show-action mechanism, or something that has never been built before. Drop a few lines and we'll be in touch within 48 hours with a calendar link and some honest questions.
           </p>
           <div className="info">
             <div className="row"><span className="k">Studio</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
@@ -351,9 +491,10 @@ function Contact() {
           </div>
         </div>
         <div className="form-wrap reveal d1">
-          <div className="peek">
+          <div className="peek peek-mormel">
             <div className="speech">Psst — over here.</div>
-            <img src="assets/peek-animatronic.png" alt="" />
+            <img className="peek-base" src="assets/mormel.png" alt="" />
+            <img className="peek-paw" src="assets/mormel-hand.png" alt="" aria-hidden="true" />
           </div>
           <form
             onSubmit={(e) => {
@@ -379,15 +520,8 @@ function Contact() {
             </div>
             <div className="row-2">
               <div className="field">
-                <label htmlFor="ct">Project type</label>
-                <select id="ct" defaultValue="">
-                  <option value="" disabled>Select…</option>
-                  <option>Queue-line character</option>
-                  <option>Show / finale figure</option>
-                  <option>Custom show-action equipment</option>
-                  <option>Refurbish / re-program</option>
-                  <option>Not sure yet</option>
-                </select>
+                <label htmlFor="cl">Project location</label>
+                <input id="cl" type="text" placeholder="City / park / country" />
               </div>
               <div className="field">
                 <label htmlFor="cb">Budget range</label>
@@ -402,8 +536,8 @@ function Contact() {
               </div>
             </div>
             <div className="field">
-              <label htmlFor="cm">The moment you want to build</label>
-              <textarea id="cm" placeholder="A child meets a sea creature in a queue line…"></textarea>
+              <label htmlFor="cm">Tell us what you'd love to make move</label>
+              <textarea id="cm" placeholder="A queue-line character, a dark ride animatronic, a creature effect…"></textarea>
             </div>
             <button type="submit" className="cta-btn">
               Send brief <span className="arrow">→</span>
@@ -449,234 +583,122 @@ function Home() {
     <>
       <Banner />
 
-      {/* CONCEPT */}
-      <Chapter id="concept" num="01" kicker="Chapter 01 · Concept" title="It starts with" em="a feeling." />
-      <Stage
+      {/* 01 · DESIGN */}
+      <Section
+        id="design"
+        num="01"
+        chapter="Chapter 01 · Design"
+        title="It all starts with"
+        em="an idea."
         beats={[
-          { h: 'The brief is a one-pager.', p: <>Clients don't ask for a robot. They ask for <b>a moment</b>: a child meeting a sea creature in a queue line, or a guest stepping into a forge and meeting its keeper.</> },
-          { h: 'A name before a body.', p: <><span className="tag joey">JOEY</span>was named the day before his first sketch. <span className="tag vulkan">VULKAN</span>came named — the client wrote it on a sticky note and never let it go.</> },
-          { h: 'Constraints, written down.', p: <>Cycle time, sight-lines, audience age, what we never want it to do. Every figure that follows has to fit on this single sheet of paper.</> },
+          { h: 'We begin wherever you are.', p: <>Every creative process is different. Whether you already have a finished design, a loose sketch, or only the beginning of an idea, we can join the project where it stands today. In collaboration with the design department of P&amp;P Projects, we help shape concepts into defined and buildable characters.</> },
+          { h: 'Creative 3D modelling.', p: <>An idea truly starts to take shape once it becomes three-dimensional. During the modelling process, sketches, references or existing models are translated into a detailed digital sculpture that defines the appearance and proportions of the figure.</> },
+          { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
         ]}
-        specs={[]}
-        visual={
-          <div className="crane-stage">
-            <div className="crane-camera">
-              <div className="crane-frame"><img className="crane-img s3" src="assets/concept-step-3-head.png" alt="" /></div>
-              <div className="crane-frame"><img className="crane-img s2" src="assets/concept-step-2-torso.png" alt="" /></div>
-              <div className="crane-frame"><img className="crane-img s1" src="assets/concept-step-1-feet.png" alt="" /></div>
-            </div>
-            <div className="crane-tag">CONCEPT · CRANE UP · 0:06</div>
-            <div className="crane-progress"><div className="crane-progress-fill"></div></div>
-          </div>
-        }
+        visual={<UkkieStage />}
       />
 
       <PullQuote
-        who="Studio note"
-        role="Lead designer"
-        text="Build the character before you build the mechanism. The mechanism follows."
+        who="Jorge Davo Sainz"
+        role="Technology lead"
+        text="A great character is not defined by how many movements it has, but by how those movements are placed."
       />
 
-      {/* DESIGN */}
-      <Chapter id="design" num="02" kicker="Chapter 02 · Design" title="Mechanical" em="design." />
-      <Stage
+      {/* 02 · ENGINEERING */}
+      <Section
         flip
+        id="engineering"
+        num="02"
+        chapter="Chapter 02 · Engineering"
+        title="Mechanical"
+        em="engineering."
         beats={[
-          { h: 'Silhouette tests, by the dozen.', p: <>First passes are scribbles — head-to-eye ratios, posture, weight. <span className="tag joey">JOEY</span>oversizes the eyes by ~40%. <span className="tag vulkan">VULKAN</span>leans heavy: shoulders forward, jaw low.</> },
-          { h: 'A turnaround, in the round.', p: <>Once the silhouette holds at thumbnail size we lock a turnaround: front, three-quarter, side, back. Every team downstream sketches against this grid.</> },
-          { h: 'Scale on a stick.', p: <>We print at 1:1 on foamcore and stand it next to a six-year-old (Joey) or a six-foot-tall adult (Vulkan). If it's wrong here, it's <b>cheap to fix</b>.</> },
-        ]}
-        specs={[
-          { k: 'Joey · height', v: '650 mm' },
-          { k: 'Vulkan · height', v: '2.1 m' },
-          { k: 'Eye ratio', v: '1.4× / 0.9×' },
-          { k: 'Approval', v: 'Round 03' },
-        ]}
-        visual={
-          <div className="rotate3d-stage">
-            <div className="rotate3d-figure">
-              <img className="face front" src="assets/vulkan-rotate-1.png" alt="Vulkan concept · 3/4 view" />
-              <img className="face back" src="assets/vulkan-rotate-2.png" alt="Vulkan concept · front view" />
-            </div>
-            <div className="rotate3d-floor"></div>
-            <div className="rotate3d-tag">VULKAN · CD-04 · ROT 360°</div>
-          </div>
-        }
-      />
-
-      {/* MECHANICAL */}
-      <Chapter id="mechanical" num="03" kicker="Chapter 03 · Mechanical" title="Bones under" em="the skin." />
-      <Stage
-        beats={[
-          { h: 'The skeleton is the character.', p: <>Mechanical engineers don't draw an octopus or a forge-keeper — they draw a kinematic chain that has to live inside one. <span className="tag joey">JOEY</span>9 DOF, lightweight aluminium. <span className="tag vulkan">VULKAN</span>14 DOF, structural steel + AL.</> },
-          { h: 'Servos that can lie still.', p: <>Show animatronics spend most of their life holding a pose. We pick servos rated for <b>continuous holding torque</b>, not just peak — and de-rate by 30% for a 10-year service life.</> },
-          { h: 'FEA on every load path.', p: <>Every bracket goes through finite-element analysis. Joey's brass collar is a structural ring. Vulkan's torso bears the weight of a 30 kg steel head.</> },
-        ]}
-        specs={[
-          { k: 'Joey · DOF', v: '9 axes' },
-          { k: 'Vulkan · DOF', v: '14 axes' },
-          { k: 'Material', v: 'AL 6061 / steel' },
-          { k: 'Service life', v: '10 yr' },
+          { h: 'Engineering for performance.', p: <>The figure is developed internally through mechanical engineering. Motors, actuators, linkages, and structures are integrated into the character and documented to the highest standards — the engineering supports the performance of the figure, allowing the mechanics to serve the character rather than reshape it around technical convenience.</> },
+          { h: 'Designed for long-term operation.', p: <>Mechanical engineering is not only about making a figure move, but about making it reliable, maintainable, and built for long-term operation. We focus on service accessibility, durable construction, efficient layouts, and components that withstand continuous use in demanding environments.</> },
+          { h: 'Built for all conditions.', p: <>Our creations rarely live in ideal environments. Outdoor installations, underwater scenes, chlorinated or salt water, humidity, dust, heat, and continuous indoor operation each place different demands on a character. We design with those conditions in mind from the very beginning.</> },
         ]}
         visual={
           <div className="mech-stage">
             <div className="mech-figure">
-              <img src="assets/vulkan-skeleton.png" alt="Vulkan skeleton" />
+              <img src="assets/vulkan-skeleton.png" alt="Vulkan internal mechanical structure" />
             </div>
             <div className="mech-floor"></div>
-            <div className="rotate3d-tag">VULKAN · ME-12 · TURNTABLE</div>
+            <div className="rotate3d-tag">VULKAN SC11 · FRAME</div>
           </div>
         }
       />
 
-      {/* MECHANICAL ANALYSIS */}
-      <Chapter id="controls" num="04" kicker="Chapter 04 · Mechanical analysis" title="Range of" em="motion." />
-      <Stage
-        flip
+      {/* 03 · ANALYSIS */}
+      <Section
+        id="analysis"
+        num="03"
+        chapter="Chapter 03 · Analysis"
+        title="Calculated beyond"
+        em="assumptions."
         beats={[
-          { h: 'Every joint, mapped.', p: <>Before a single bracket is cut we sketch the kinematic envelope joint by joint — pivot points, swept arcs, hard stops. <b>If a hand can clip the head, we find out on paper.</b></> },
-          { h: 'Load paths in color.', p: <>We highlight the load path through each limb in a flat color: pink for compression members, yellow for the live pivot, blue for the cantilever. Engineering and fab read the same drawing.</> },
-          { h: 'Margins, not maximums.', p: <>Every articulation is sized to its <b>worst-case pose</b>, then de-rated 30%. The figure is never working at the edge of its envelope — only ever in the comfortable middle.</> },
-        ]}
-        specs={[
-          { k: 'Joey · joints', v: '9 analyzed' },
-          { k: 'Vulkan · joints', v: '14 analyzed' },
-          { k: 'FEA factor', v: '1.6× peak' },
-          { k: 'Cycles', v: '10⁶ tested' },
+          { h: 'Engineered for the real world.', p: <>Every figure faces different demands, so we apply mechanical analysis based on the specific requirements of each project — structural analysis, dynamic analysis, overhead load calculations, fatigue evaluation, wind loading, vibration, or environmental considerations. The goal is not to overengineer everything equally, but to apply the right validation where it matters for safety, reliability, and long-term performance.</> },
+          { h: 'Verified beyond our workshop.', p: <>Safety and reliability are part of the engineering process from the very beginning. Alongside our internal analysis and validation workflows, we collaborate with specialized third-party reviewers when required, to independently assess structures, safety-critical systems, and installation conditions.</> },
         ]}
         visual={
-          <Bp title="Joint envelope · ME-08" code="ROM · 04-12">
-            <img src="assets/mech-analysis-joint.png" alt="Joint range-of-motion analysis sketch" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px' }} />
+          <Bp title="Load case · ME-08" code="ANALYSIS · FEA">
+            <img src="assets/mech-analysis-joint.png" alt="Mechanical analysis with load visualizations" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px' }} />
           </Bp>
         }
       />
 
-      {/* MOTOR & WIRING */}
-      <Chapter id="motors" num="05" kicker="Chapter 05 · Motor & wiring" title="Goodbye to" em="cable strain." />
-      <Stage
+      {/* 04 · ACTUATORS */}
+      <Section
         flip
+        id="actuators"
+        num="04"
+        chapter="Chapter 04 · Actuators"
+        title="The"
+        em="powerhouse."
         beats={[
-          { h: 'Integrated drive actuators.', p: <>Drive units sit <b>at the joint they move</b>, not three links away. The torque path is short and the wiring runs <b>inside the bone</b>, not stretched across it.</> },
-          { h: 'Service loops, not service nightmares.', p: <>Every harness is color-coded — <b>orange power, blue feedback, green safety</b> — with proper bend radii and a service loop at every joint. Open a panel and you can read what's going where.</> },
-          { h: 'Five-minute swaps.', p: <>Connectors are keyed and labelled. A drive module swaps in <b>under five minutes</b> with one tool, no soldering, no head-scratching at 2 a.m. before a soft-open.</> },
-        ]}
-        specs={[
-          { k: 'Actuators', v: 'Integrated, per joint' },
-          { k: 'Wiring', v: 'In-bone routing' },
-          { k: 'Harness', v: 'Color-coded, keyed' },
-          { k: 'Swap time', v: '<5 min, one tool' },
+          { h: 'Electrical motion, done right.', p: <>The actuator is the heart of every animatronic figure. We primarily work with electrical actuators for their precision, smooth motion, and overall quality of movement. Pneumatics remain in our toolbox where requested or where environmental conditions make them the better solution. Over the years we've worked with many leading actuator manufacturers and developed clear preferences for their most effective use.</> },
+          { h: 'Say goodbye to cable strain.', p: <>We use integrated drive actuators — motor, encoder, and drive electronics combined into a single compact unit. Communication and power are daisy-chained directly through the actuators, leaving a <b>single cable path</b> running through the character. Fewer cables means cleaner routing, fewer failure points, and far greater flexibility through compact spaces and moving joints.</> },
+          { h: 'Designed for real operation.', p: <>Our systems are engineered with long-term operation and maintenance in mind. Actuators are selected for reliability, serviceability, and availability — positioned for accessibility, with replacement units often available within days rather than months.</> },
         ]}
         visual={<MotorWiringBoard />}
       />
 
-      {/* CRITTER CONTROL */}
-      <Chapter id="hardware" num="06" kicker="Chapter 06 · Critter Control" title="Designed for" em="performance." />
-      <Stage
+      {/* 05 · CONTROL */}
+      <Section
+        id="control"
+        num="05"
+        chapter="Chapter 05 · Control"
+        title="Control even the"
+        em="finest detail."
         beats={[
-          { h: 'Controlled by Critter Control.', p: <>Every figure ships under our <b>CritterControl</b> hardware — a deterministic rack that reads the show file and drives every axis. <b>Designed for optimal performance, refined for monitoring.</b></> },
-          { h: 'FSCS modules, per joint.', p: <>Inside the box, stacked <b>FSCS hardware modules</b> handle servo and pneumatic drives. Each module reports position back so the controller knows what's actually happening, not just what it asked for.</> },
-          { h: 'One brain. One show file.', p: <>Cues, audio, lighting and effects flow through a single rack. Bench, studio, site — the same hardware plays the same show, with hardwired e-stop and on-board fault logging.</> },
-        ]}
-        specs={[
-          { k: 'Rack', v: 'CritterControl box' },
-          { k: 'Modules', v: 'FSCS · per joint' },
-          { k: 'E-stop', v: 'Hardwired · <80 ms' },
-          { k: 'Telemetry', v: 'On-board, portable' },
+          { h: 'The brain behind our characters.', p: <>Every character is powered by our custom-designed <b>CritterControl</b> hardware, installed directly inside the figure's control cabinet. Acting as the main brain, it manages motion, timing, feedback, and communication across the entire figure. Developed fully in-house, it interfaces with integrated drive actuators, pneumatics, industrial equipment, sensors, effects, and show-control infrastructure — a flexible foundation for virtually any animated figure.</> },
+          { h: 'Performance monitoring.', p: <>With <b>CritterControl Center</b>, operators monitor the status and performance of characters from a central location and, if desired, remotely from anywhere in the world. The platform surfaces character health, behaviour, and maintenance needs before they become failures. Remote connectivity is always configured to the privacy requirements of the park or operator.</> },
         ]}
         visual={<CCSketchBoard />}
       />
 
-      {/* ANIMATION */}
-      <Chapter id="animation" num="07" kicker="Chapter 07 · Animation" title="Choreography" em="in code." />
-      <Stage
-        beats={[
-          { h: 'A timeline, not a script.', p: <>We don't write code that says "wave hello." We <b>animate curves</b> on a timeline. <span className="tag joey">JOEY</span>blinks at 02:18, mouth opens at 02:21. <span className="tag vulkan">VULKAN</span>raises the hammer at 01:04 and lets it hang for two beats.</> },
-          { h: 'Easing is the performance.', p: <>Linear motion looks like a robot. Cubic ease-in-out looks alive. The character lives in the <b>last 10%</b> of every move — the settle, the breath, the look-away.</> },
-          { h: 'Cues that obey the room.', p: <>Show cues are triggered by the venue: a sensor, a button, a clock. The figures stay asleep until needed and never repeat themselves in front of the same guest.</> },
-        ]}
-        specs={[
-          { k: 'Show file', v: '.tmot v3' },
-          { k: 'Frame rate', v: '30 fps' },
-          { k: 'Joey · cues', v: '14 unique' },
-          { k: 'Vulkan · cues', v: '9 unique' },
-        ]}
-        visual={
-          <Bp title="Show · Cue 14 · 'Hello'" code="SE-14 · 04-26">
-            <SoftSketch />
-          </Bp>
-        }
-      />
-
-      <PullQuote
-        who="Studio note"
-        role="Lead programmer"
-        text="A robot waits. A character breathes. The difference is twenty milliseconds and a lot of opinions."
-      />
-
-      {/* ANIMATION SOFTWARE */}
-      <Chapter id="software" num="08" kicker="Chapter 08 · Animation software" title="Curves on a" em="timeline." />
-      <Stage
+      {/* 06 · ANIMATION */}
+      <Section
         flip
+        id="animation"
+        num="06"
+        chapter="Chapter 06 · Animation"
+        title="Choreography"
+        em="in code."
         beats={[
-          { h: 'A timeline you can scrub.', p: <>Our in-house animation suite shows every axis as an editable curve. Animators <b>scrub, loop and tune</b> in real time — the figure on the bench mirrors what's on screen, frame by frame.</> },
-          { h: 'Curves are the performance.', p: <>Linear is robotic; the personality lives in the easing. We work in cubic and custom Bézier curves on every joint so a head-turn settles, a shoulder breathes, a hand <b>hesitates before it lands</b>.</> },
-          { h: 'One file, every figure.', p: <>Cues, audio, lighting and effects export to a single show file the rack reads on power-up. <b>Bench, studio, site</b> — the show plays the same in all three.</> },
+          { h: 'Animation without limits.', p: <>Characters are animated using our <b>CritterControl Animation Tool</b>, a software environment designed specifically for animatronics. It lets us craft detailed performances with precise control over motion, timing, and synchronization — and supports hundreds of animations per character, so operators can even create their own.</> },
+          { h: 'Control to the finest detail.', p: <>CritterControl lets us prepare performances with precise control over motion curves, keyframes, interpolation, timing, synchronization, triggers, and show sequencing. Using a real-time 3D workflow, we preview, refine, and adjust performances directly around the intended movement of the figure — before and during integration.</> },
         ]}
-        specs={[
-          { k: 'Editor', v: 'In-house · .tmot' },
-          { k: 'Curves', v: 'Cubic / Bézier' },
-          { k: 'Frame rate', v: '30 fps' },
-          { k: 'Round-trip', v: 'Live to bench' },
-        ]}
-        visual={
-          <VideoStage
-            src="https://drive.google.com/file/d/13DV0kF0sM9moxur6m9tBVRCFPJZaZgKx/preview?autoplay=1&mute=1"
-            tag="ANIM SUITE · SE-22 · LIVE"
-          />
-        }
+        visual={<CurvesVisual />}
       />
 
-      <Slab meta={['8 chapters', 'One studio', 'Every figure']}>
-        The final stage.
-      </Slab>
-
-      {/* FINALE */}
-      <section className="finale" id="finale">
-        <div className="head reveal">
-          <div
-            className="kicker"
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 11,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-dim)',
-            }}
-          >
-            Section 09 · Figure finishing
-          </div>
-          <h2>And then a child <em>says hello.</em></h2>
-          <p className="head-sub">
-            High detail, realistic to cartoonish — and everything in between. The final reveal is where engineering disappears and a character begins.
-          </p>
-        </div>
-        <div className="reveal-grid reveal d1">
-          <figure className="reveal-pane">
-            <div className="reveal-img">
-              <img src="assets/joey-front.png" alt="Joey — front view" style={{ transform: 'scale(1.02)' }} />
-            </div>
-          </figure>
-          <figure className="reveal-pane">
-            <div className="reveal-img">
-              <img
-                src="assets/joey-front.png"
-                alt="Joey — close-up"
-                style={{ transform: 'scale(2.0) translate(-4%, 8%)', transformOrigin: 'center' }}
-              />
-            </div>
-          </figure>
-        </div>
-      </section>
+      {/* 07 · FINISHING */}
+      <FinishingSection
+        beats={[
+          { h: 'From a machine to a being.', p: <>The finishing stage is where the mechanical figure becomes a believable character. Rigid shells define the silhouette, proportions, and fine details while integrating carefully around the internal structure. All shells are developed digitally over the validated mechanical assembly — so clearances, movement ranges, and interactions are verified before fabrication, whether through reinforced 3D printing, fiberglass moulding, or both.</> },
+          { h: 'Flexible skins.', p: <>Flexible materials are used where a more organic appearance or movement is required — faces, necks, hands, and transition zones. Silicone skins, artificial fur, fabrics, and costume elements are all designed around the motion of the figure itself, balancing expression, durability, and serviceability from the earliest stages.</> },
+          { h: 'Built for operation and maintenance.', p: <>A finished character should look convincing on opening day and stay that way for years. Coatings, paint systems, and finishing materials are selected for the intended environment — indoor, outdoor, humid, or high-wear — while removable panels and hidden access points keep it maintainable.</> },
+        ]}
+      />
 
       {/* CONTACT */}
       <Contact />
@@ -705,7 +727,9 @@ function Projects() {
   return (
     <>
       <header className="portfolio-head">
-        <div className="portfolio-head-bg" aria-hidden="true"></div>
+        <div className="portfolio-head-bg" aria-hidden="true">
+          <img className="portfolio-head-img" src="assets/octopus-hero.png" alt="" />
+        </div>
         <div className="portfolio-head-inner reveal">
           <div className="kicker">Selected work · 2016—2026</div>
           <h1>Projects.</h1>
