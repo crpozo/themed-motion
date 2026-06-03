@@ -2052,13 +2052,13 @@ html { scroll-padding-top: var(--nav-h); scroll-snap-type: y proximity; }
   .finishing-inner { padding: 80px 22px 64px; }
 }
 
-/* ---- Contact: Mormel gripping the top edge of the form box ---- */
+/* ---- Contact: Mormel gripping the top-right corner of the form box ---- */
 .contact .form-wrap { padding-top: 104px; }
 .contact .peek-mormel {
   width: 200px;
-  top: 2px;
-  right: -6px;
-  animation: none;            /* anchored, not floating — it holds the box */
+  top: 62px;
+  right: -86px;
+  animation: none;            /* anchored — it holds the box, not floating */
 }
 .contact .peek-mormel .peek-base { width: 100%; height: auto; display: block; transform: none; }
 .contact .peek-mormel .peek-paw {
@@ -2069,6 +2069,18 @@ html { scroll-padding-top: var(--nav-h); scroll-snap-type: y proximity; }
 @media (prefers-reduced-motion: reduce) {
   .contact .peek-mormel .peek-paw { animation: none; }
 }
+/* Responsive: keep it gripping the top-right corner without overflowing as the
+   form narrows / the layout stacks. */
+@media (max-width: 1180px) {
+  .contact .peek-mormel { width: 188px; top: 58px; right: -48px; }
+}
+@media (max-width: 920px) {
+  .contact .peek-mormel { width: 174px; top: 52px; right: -26px; }
+}
 @media (max-width: 760px) {
-  .contact .peek-mormel { width: 140px; }
+  .contact .peek-mormel { width: 148px; top: 44px; right: -16px; }
+  .contact .peek-mormel .speech { display: none; }
+}
+@media (max-width: 430px) {
+  .contact .peek-mormel { width: 118px; top: 34px; right: -8px; }
 }
