@@ -2213,3 +2213,25 @@ html { scroll-padding-top: var(--nav-h); }
 }
 .mv-toggle button:hover { color: var(--ink); }
 .mv-toggle button.is-active { background: var(--accent); color: #fff; }
+
+/* ===== Keep each deck section within the viewport (shorter screens) ===== */
+@media (max-height: 880px) {
+  .sec-panel { gap: 16px; padding-top: calc(var(--nav-h) + 8px); padding-bottom: 22px; }
+  .sec-num { font-size: 50px; }
+  .sec-kicker { margin: 8px 0 8px; }
+  .sec-title { font-size: clamp(26px, 3.2vw, 42px); }
+  .sec-beats { gap: 11px; }
+  .sec .beat { padding-bottom: 9px; }
+  .sec .beat-body h3 { font-size: 15px; margin-bottom: 3px; }
+  .sec .beat-body p { font-size: 12.5px; line-height: 1.42; }
+}
+@media (max-height: 760px) {
+  .sec-panel { gap: 11px; padding-top: calc(var(--nav-h) + 4px); padding-bottom: 16px; }
+  .sec-num { font-size: 42px; }
+  .sec-kicker { margin: 6px 0 6px; }
+  .sec-title { font-size: clamp(22px, 2.9vw, 33px); }
+  .sec-beats { gap: 8px; }
+  .sec .beat { grid-template-columns: 44px 1fr; gap: 12px; padding-bottom: 7px; }
+  .sec .beat-body h3 { font-size: 14px; margin-bottom: 2px; }
+  .sec .beat-body p { font-size: 11.5px; line-height: 1.36; }
+}
