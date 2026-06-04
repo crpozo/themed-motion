@@ -80,6 +80,107 @@ function useScrolled(factor = 0.6) {
   return scrolled;
 }
 
+// Section IDs the deck snaps between (the journey; the tall contact/footer tail
+// is intentionally left to normal scroll).
+const SNAP_IDS = ['top', 'design', 'engineering', 'analysis', 'actuators', 'control', 'animation', 'finishing'];
+
+// Scroll a section into place. Full-height journey sections snap to their true
+// top (the fixed nav overlays them; their content is already padded clear of
+// it); the hero goes to 0 and the shorter contact tail clears the nav.
+function scrollToSectionEl(el) {
+  if (!el) return;
+  const nav = document.querySelector('.nav');
+  const navH = (nav && nav.offsetHeight) || 100;
+  let top;
+  if (el.id === 'top') top = 0;
+  else if (el.id === 'contact') top = Math.max(0, el.offsetTop - navH);
+  else top = el.offsetTop;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+// Desktop "one scroll = next section" (fullpage-style). A single wheel gesture
+// or arrow/page key advances exactly one section. Over-tall sections scroll
+// internally to their edge first; the contact/footer tail scrolls normally.
+// Disabled on touch / ≤1100px and when reduced motion is requested.
+function useSectionScroll(enabled) {
+  useEffect(() => {
+    if (!enabled) return;
+    if (!window.matchMedia('(min-width: 1101px) and (pointer: fine)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let animating = false;
+    let animTimer = 0;
+    let lastNav = 0;
+    const list = () => SNAP_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+
+    const goTo = (els, i) => {
+      i = Math.max(0, Math.min(els.length - 1, i));
+      animating = true;
+      scrollToSectionEl(els[i]);
+      clearTimeout(animTimer);
+      animTimer = setTimeout(() => { animating = false; }, 760);
+    };
+
+    const currentIdx = (els, vpTop) => {
+      let idx = 0;
+      for (let i = 0; i < els.length; i++) if (els[i].offsetTop <= vpTop + 90) idx = i;
+      return idx;
+    };
+
+    const onWheel = (e) => {
+      const els = list();
+      if (els.length < 2) return;
+      const vpTop = window.scrollY;
+      const lastBottom = els[els.length - 1].offsetTop + els[els.length - 1].offsetHeight;
+      if (vpTop >= lastBottom - 4) return; // in contact/footer tail → normal scroll
+      if (animating) { e.preventDefault(); return; }
+      const dir = e.deltaY > 0 ? 1 : -1;
+      const idx = currentIdx(els, vpTop);
+      const cur = els[idx];
+      // Genuinely taller-than-viewport section: let it scroll internally to its
+      // edge before snapping (kicks in only when >40px over the viewport).
+      if (cur.offsetHeight - window.innerHeight > 40) {
+        const vpBottom = vpTop + window.innerHeight;
+        if (dir > 0 && vpBottom < cur.offsetTop + cur.offsetHeight - 6) return;
+        if (dir < 0 && vpTop > cur.offsetTop + 6) return;
+      }
+      if (dir > 0 && idx >= els.length - 1) return; // finishing → release into contact
+      if (dir < 0 && idx <= 0) return;              // already at the hero
+      const now = Date.now();
+      if (now - lastNav < 820) { e.preventDefault(); return; }
+      e.preventDefault();
+      lastNav = now;
+      goTo(els, idx + dir);
+    };
+
+    const onKey = (e) => {
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const down = e.key === 'ArrowDown' || e.key === 'PageDown';
+      const up = e.key === 'ArrowUp' || e.key === 'PageUp';
+      if (!down && !up) return;
+      const els = list();
+      if (els.length < 2) return;
+      const vpTop = window.scrollY;
+      const lastBottom = els[els.length - 1].offsetTop + els[els.length - 1].offsetHeight;
+      if (down && vpTop >= lastBottom - 2) return;
+      const idx = currentIdx(els, vpTop);
+      if (down && idx >= els.length - 1) return;
+      if (up && idx <= 0) return;
+      e.preventDefault();
+      goTo(els, idx + (down ? 1 : -1));
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', onKey);
+      clearTimeout(animTimer);
+    };
+  }, [enabled]);
+}
+
 function Nav({ route }) {
   const onProjects = route === '#/projects';
   return (
@@ -111,8 +212,7 @@ function SideNav({ route }) {
   if (route === '#/projects') return null;
   const go = (e, id) => {
     e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToSectionEl(document.getElementById(id));
   };
   return (
     <nav className={'sidenav' + (scrolled ? ' is-visible' : '')} aria-label="Section navigation">
@@ -383,6 +483,35 @@ function UkkieStage() {
       <div className="ukkie-svg" dangerouslySetInnerHTML={{ __html: ukkieModelSvg }} />
       <div className="ukkie-floor" aria-hidden="true"></div>
       <div className="ukkie-tag">UKKIE · SKETCH → MODEL</div>
+    </div>
+  );
+}
+
+// Control-section visual: the real FSCS hardware as a slowly spinning 3D model
+// (converted from the supplied STEP CAD). Lazy-loaded; pauses when off-screen.
+function ControlVisual() {
+  return (
+    <div className="mv-stage">
+      <model-viewer
+        className="mv"
+        src="assets/fscs.glb"
+        alt="CritterControl FSCS hardware module — 3D"
+        camera-controls
+        auto-rotate
+        auto-rotate-delay="0"
+        rotation-per-second="26deg"
+        interaction-prompt="none"
+        disable-zoom
+        touch-action="pan-y"
+        loading="lazy"
+        environment-image="neutral"
+        shadow-intensity="0.9"
+        shadow-softness="0.85"
+        exposure="1.05"
+        camera-orbit="35deg 75deg 105%"
+      ></model-viewer>
+      <div className="mv-tag">CRITTERCONTROL · FSCS</div>
+      <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
     </div>
   );
 }
@@ -683,7 +812,7 @@ function Home() {
           { h: 'The brain behind our characters.', p: <>Every character is powered by our custom-designed <b>CritterControl</b> hardware, installed directly inside the figure's control cabinet. Acting as the main brain, it manages motion, timing, feedback, and communication across the entire figure. Developed fully in-house, it interfaces with integrated drive actuators, pneumatics, industrial equipment, sensors, effects, and show-control infrastructure — a flexible foundation for virtually any animated figure.</> },
           { h: 'Performance monitoring.', p: <>With <b>CritterControl Center</b>, operators monitor the status and performance of characters from a central location and, if desired, remotely from anywhere in the world. The platform surfaces character health, behaviour, and maintenance needs before they become failures. Remote connectivity is always configured to the privacy requirements of the park or operator.</> },
         ]}
-        visual={<CCSketchBoard />}
+        visual={<ControlVisual />}
       />
 
       {/* 06 · ANIMATION */}
@@ -789,6 +918,7 @@ function Projects() {
 export default function App() {
   const route = useHashRoute();
   const onProjects = route === '#/projects';
+  useSectionScroll(!onProjects);
   return (
     <>
       <Nav route={route} />
