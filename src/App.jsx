@@ -474,12 +474,30 @@ function UkkieStage() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let raf1 = 0, raf2 = 0;
     const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add('is-active'); io.disconnect(); } },
-      { threshold: 0.35 },
+      ([e]) => {
+        // Replay the sketch→model reveal (+ turntable) every time the Design
+        // slide returns: snap instantly back to the sketch, then play forward.
+        if (e.isIntersecting) {
+          el.classList.add('reset');         // hold the sketch, no transition
+          el.classList.remove('is-active');
+          cancelAnimationFrame(raf2);
+          raf1 = requestAnimationFrame(() => {
+            el.classList.remove('reset');     // re-enable transitions
+            raf2 = requestAnimationFrame(() => el.classList.add('is-active')); // play
+          });
+        } else {
+          cancelAnimationFrame(raf1);
+          cancelAnimationFrame(raf2);
+          el.classList.add('reset');          // instantly reset to the sketch
+          el.classList.remove('is-active');
+        }
+      },
+      { threshold: 0.4 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => { io.disconnect(); cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
   }, []);
   return (
     <div className="ukkie-stage" ref={ref}>

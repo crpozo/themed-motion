@@ -1991,6 +1991,9 @@ html { scroll-padding-top: var(--nav-h); }
 }
 .ukkie-stage.is-active .ukkie-svg svg { animation: ukkie-turn 14s ease-in-out 7s infinite; }
 @keyframes ukkie-turn { 0%, 100% { transform: rotateY(-15deg); } 50% { transform: rotateY(15deg); } }
+/* Instant reset to the sketch (no transition) so the reveal replays on return */
+.ukkie-stage.reset .ukkie-svg :is(path, polygon, polyline, rect, circle, ellipse, line) { transition: none; }
+.ukkie-stage.reset .ukkie-svg svg { animation: none; }
 .ukkie-floor {
   position: absolute; bottom: 12%; left: 50%; width: 46%; height: 26px;
   transform: translateX(-50%); border-radius: 50%;
