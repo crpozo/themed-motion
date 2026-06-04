@@ -107,7 +107,8 @@ function useSectionScroll(enabled) {
     let animating = false;
     let animTimer = 0;
     let lastNav = 0;
-    let lastWheel = 0;
+    let idle = true;       // true only after the wheel stream has been quiet a while
+    let settleTimer = 0;
     const list = () => SNAP_IDS.map((id) => document.getElementById(id)).filter(Boolean);
 
     const goTo = (els, i) => {
@@ -124,13 +125,25 @@ function useSectionScroll(enabled) {
       return idx;
     };
 
+    // Push the "settled" moment further out on every event we own. idle only
+    // becomes true again ~380ms after the very last wheel — so a whole physical
+    // swipe (including the trackpad's long inertia tail, and any events that
+    // arrive during the snap animation) advances exactly one section.
+    const refresh = () => {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => { idle = true; }, 380);
+    };
+
     const onWheel = (e) => {
+      // While a snap is animating, swallow everything (incl. inertia) and keep
+      // the timer fresh — this is what prevents the post-animation tail from
+      // being read as a new gesture and jumping a second section.
+      if (animating) { e.preventDefault(); refresh(); return; }
       const els = list();
       if (els.length < 2) return;
       const vpTop = window.scrollY;
       const lastBottom = els[els.length - 1].offsetTop + els[els.length - 1].offsetHeight;
       if (vpTop >= lastBottom - 4) return; // in contact/footer tail → normal scroll
-      if (animating) { e.preventDefault(); return; }
       const dir = e.deltaY > 0 ? 1 : -1;
       const idx = currentIdx(els, vpTop);
       const cur = els[idx];
@@ -145,15 +158,9 @@ function useSectionScroll(enabled) {
       if (dir < 0 && idx <= 0) return;              // already at the hero
       // We're taking over scrolling for the deck.
       e.preventDefault();
-      const now = Date.now();
-      const gap = now - lastWheel;
-      lastWheel = now;
-      if (animating) return;
-      // One advance per gesture: ignore the momentum tail (events arriving in a
-      // continuous stream) — only a wheel after a real pause counts as new.
-      if (gap < 160) return;
-      if (now - lastNav < 600) return;
-      lastNav = now;
+      refresh();
+      if (!idle) return;
+      idle = false;
       goTo(els, idx + dir);
     };
 
@@ -184,6 +191,7 @@ function useSectionScroll(enabled) {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', onKey);
       clearTimeout(animTimer);
+      clearTimeout(settleTimer);
     };
   }, [enabled]);
 }
