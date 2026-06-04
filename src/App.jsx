@@ -111,6 +111,7 @@ function useSectionScroll(enabled) {
     let animating = false;
     let animTimer = 0;
     let lastNav = 0;
+    let lastWheel = 0;
     const list = () => SNAP_IDS.map((id) => document.getElementById(id)).filter(Boolean);
 
     const goTo = (els, i) => {
@@ -146,9 +147,16 @@ function useSectionScroll(enabled) {
       }
       if (dir > 0 && idx >= els.length - 1) return; // finishing → release into contact
       if (dir < 0 && idx <= 0) return;              // already at the hero
-      const now = Date.now();
-      if (now - lastNav < 820) { e.preventDefault(); return; }
+      // We're taking over scrolling for the deck.
       e.preventDefault();
+      const now = Date.now();
+      const gap = now - lastWheel;
+      lastWheel = now;
+      if (animating) return;
+      // One advance per gesture: ignore the momentum tail (events arriving in a
+      // continuous stream) — only a wheel after a real pause counts as new.
+      if (gap < 160) return;
+      if (now - lastNav < 600) return;
       lastNav = now;
       goTo(els, idx + dir);
     };
@@ -168,6 +176,9 @@ function useSectionScroll(enabled) {
       if (down && idx >= els.length - 1) return;
       if (up && idx <= 0) return;
       e.preventDefault();
+      const now = Date.now();
+      if (animating || now - lastNav < 600) return;
+      lastNav = now;
       goTo(els, idx + (down ? 1 : -1));
     };
 
