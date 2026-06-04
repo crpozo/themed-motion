@@ -80,108 +80,11 @@ function useScrolled(factor = 0.6) {
   return scrolled;
 }
 
-// Section IDs the deck snaps between (the journey; the tall contact/footer tail
-// is intentionally left to normal scroll).
-const SNAP_IDS = ['top', 'design', 'engineering', 'analysis', 'actuators', 'control', 'animation', 'finishing', 'contact'];
-
-// Scroll a section into place. Full-height journey sections snap to their true
-// top (the fixed nav overlays them; their content is already padded clear of
-// it); the hero goes to 0 and the shorter contact tail clears the nav.
+// Scroll a section to the top of the viewport (its content is padded clear of
+// the fixed nav). Used by the side-slider clicks.
 function scrollToSectionEl(el) {
   if (!el) return;
-  // Sections fill the viewport with their content padded clear of the fixed nav,
-  // so we snap to the section's true top (hero goes to 0).
   window.scrollTo({ top: el.id === 'top' ? 0 : el.offsetTop, behavior: 'smooth' });
-}
-
-// Desktop "one scroll = next section" (fullpage-style). A single wheel gesture
-// or arrow/page key advances exactly one section. Over-tall sections scroll
-// internally to their edge first; the contact/footer tail scrolls normally.
-// Disabled on touch / ≤1100px and when reduced motion is requested.
-function useSectionScroll(enabled) {
-  useEffect(() => {
-    if (!enabled) return;
-    if (!window.matchMedia('(min-width: 1101px) and (pointer: fine)').matches) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    let locked = false;     // true from a nav until the wheel stream goes quiet
-    let unlockTimer = 0;
-    let lastNav = 0;
-    const list = () => SNAP_IDS.map((id) => document.getElementById(id)).filter(Boolean);
-
-    // Unlock ~600ms after the LAST wheel event, so a single swipe's inertia tail
-    // keeps the lock alive (no second jump) but a fresh scroll moves right away.
-    const scheduleUnlock = () => {
-      clearTimeout(unlockTimer);
-      unlockTimer = setTimeout(() => { locked = false; }, 600);
-    };
-
-    const goTo = (els, i) => {
-      i = Math.max(0, Math.min(els.length - 1, i));
-      scrollToSectionEl(els[i]);
-    };
-
-    const currentIdx = (els, vpTop) => {
-      let idx = 0;
-      for (let i = 0; i < els.length; i++) if (els[i].offsetTop <= vpTop + 90) idx = i;
-      return idx;
-    };
-
-    const onWheel = (e) => {
-      const els = list();
-      if (els.length < 2) return;
-      const vpTop = window.scrollY;
-      const lastBottom = els[els.length - 1].offsetTop + els[els.length - 1].offsetHeight;
-      if (vpTop >= lastBottom - 4) return; // in contact/footer tail → normal scroll
-      const dir = e.deltaY > 0 ? 1 : -1;
-      const idx = currentIdx(els, vpTop);
-      const cur = els[idx];
-      // Genuinely taller-than-viewport section: let it scroll internally to its
-      // edge before snapping (kicks in only when >40px over the viewport).
-      if (cur.offsetHeight - window.innerHeight > 40) {
-        const vpBottom = vpTop + window.innerHeight;
-        if (dir > 0 && vpBottom < cur.offsetTop + cur.offsetHeight - 6) return;
-        if (dir < 0 && vpTop > cur.offsetTop + 6) return;
-      }
-      if (dir > 0 && idx >= els.length - 1) return; // finishing → release into contact
-      if (dir < 0 && idx <= 0) return;              // already at the hero
-      // The deck owns this scroll.
-      e.preventDefault();
-      scheduleUnlock();      // every wheel (incl. inertia) keeps the lock alive
-      if (locked) return;    // mid-swipe / inertia → ignore
-      locked = true;         // leading edge of a fresh scroll → move one section now
-      goTo(els, idx + dir);
-    };
-
-    const onKey = (e) => {
-      const tag = e.target && e.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      const down = e.key === 'ArrowDown' || e.key === 'PageDown';
-      const up = e.key === 'ArrowUp' || e.key === 'PageUp';
-      if (!down && !up) return;
-      const els = list();
-      if (els.length < 2) return;
-      const vpTop = window.scrollY;
-      const lastBottom = els[els.length - 1].offsetTop + els[els.length - 1].offsetHeight;
-      if (down && vpTop >= lastBottom - 2) return;
-      const idx = currentIdx(els, vpTop);
-      if (down && idx >= els.length - 1) return;
-      if (up && idx <= 0) return;
-      e.preventDefault();
-      const now = Date.now();
-      if (now - lastNav < 500) return;   // simple cooldown for held/repeated keys
-      lastNav = now;
-      goTo(els, idx + (down ? 1 : -1));
-    };
-
-    window.addEventListener('wheel', onWheel, { passive: false });
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('keydown', onKey);
-      clearTimeout(unlockTimer);
-    };
-  }, [enabled]);
 }
 
 function Nav({ route }) {
@@ -944,7 +847,6 @@ function Projects() {
 export default function App() {
   const route = useHashRoute();
   const onProjects = route === '#/projects';
-  useSectionScroll(!onProjects);
   return (
     <>
       <Nav route={route} />
