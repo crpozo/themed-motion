@@ -1926,8 +1926,8 @@ html { scroll-padding-top: 0; }
 .sec.flip .sec-panel { order: 1; }
 .sec-panel {
   display: flex; flex-direction: column; justify-content: center;
-  gap: 24px;
-  padding: calc(var(--nav-h) + 18px) clamp(28px, 4vw, 60px) 34px;
+  gap: clamp(20px, 3vh, 40px);
+  padding: calc(var(--nav-h) + clamp(20px, 4vh, 52px)) clamp(28px, 4vw, 60px) clamp(28px, 4vh, 52px);
   min-height: 100vh;
 }
 .sec-num {
@@ -1951,21 +1951,25 @@ html { scroll-padding-top: 0; }
   text-transform: uppercase; letter-spacing: -0.005em; margin: 0; color: var(--ink);
 }
 .sec-title em { font-style: normal; color: var(--accent); }
-.sec-beats { display: flex; flex-direction: column; gap: 18px; max-width: 62ch; }
+.sec-beats {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column; justify-content: space-evenly;
+  gap: clamp(18px, 2.4vh, 34px); max-width: 64ch;
+}
 .sec .beat {
-  display: grid; grid-template-columns: 56px 1fr; gap: 16px;
-  padding-bottom: 16px; border-bottom: 1px dashed var(--rule);
+  display: grid; grid-template-columns: 60px 1fr; gap: 20px;
+  padding-bottom: clamp(16px, 2.2vh, 30px); border-bottom: 1px dashed var(--rule);
 }
 .sec .beat:last-child { border-bottom: 0; padding-bottom: 0; }
 .sec .beat-idx {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
-  color: var(--ink-faint); padding-top: 6px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+  color: var(--ink-faint); padding-top: 7px;
 }
 .sec .beat-body h3 {
-  font-family: var(--serif); font-weight: 600; font-size: 20px;
-  text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 6px; color: var(--ink);
+  font-family: var(--serif); font-weight: 600; font-size: 23px;
+  text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 9px; color: var(--ink);
 }
-.sec .beat-body p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--ink-dim); }
+.sec .beat-body p { margin: 0; font-size: 17px; line-height: 1.62; color: var(--ink-dim); }
 .sec .beat-body p b { color: var(--ink); font-weight: 600; }
 
 @media (max-width: 900px) {
@@ -2233,19 +2237,19 @@ html { scroll-padding-top: 0; }
   .sec-panel { gap: 16px; padding-top: calc(var(--nav-h) + 10px); padding-bottom: 24px; }
   .sec-num { font-size: 52px; }
   .sec-title { font-size: clamp(28px, 3.4vw, 46px); }
-  .sec-beats { gap: 13px; }
-  .sec .beat { padding-bottom: 12px; }
-  .sec .beat-body h3 { font-size: 18px; margin-bottom: 4px; }
-  .sec .beat-body p { font-size: 14.5px; line-height: 1.5; }
+  .sec-beats { gap: 14px; }
+  .sec .beat { padding-bottom: 13px; }
+  .sec .beat-body h3 { font-size: 19px; margin-bottom: 5px; }
+  .sec .beat-body p { font-size: 15px; line-height: 1.5; }
 }
 @media (max-height: 760px) {
   .sec-panel { gap: 12px; padding-top: calc(var(--nav-h) + 6px); padding-bottom: 18px; }
   .sec-num { font-size: 46px; }
   .sec-title { font-size: clamp(24px, 3vw, 38px); }
-  .sec-beats { gap: 10px; }
-  .sec .beat { grid-template-columns: 48px 1fr; gap: 14px; padding-bottom: 9px; }
-  .sec .beat-body h3 { font-size: 16px; margin-bottom: 3px; }
-  .sec .beat-body p { font-size: 13.5px; line-height: 1.45; }
+  .sec-beats { gap: 9px; }
+  .sec .beat { grid-template-columns: 50px 1fr; gap: 15px; padding-bottom: 8px; }
+  .sec .beat-body h3 { font-size: 17px; margin-bottom: 3px; }
+  .sec .beat-body p { font-size: 14px; line-height: 1.46; }
 }
 
 /* Keep the Contact section within the viewport on shorter screens too */
