@@ -104,19 +104,21 @@ function useSectionScroll(enabled) {
     if (!window.matchMedia('(min-width: 1101px) and (pointer: fine)').matches) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    let animating = false;
-    let animTimer = 0;
+    let locked = false;     // true from a nav until the wheel stream goes quiet
+    let unlockTimer = 0;
     let lastNav = 0;
-    let idle = true;       // true only after the wheel stream has been quiet a while
-    let settleTimer = 0;
     const list = () => SNAP_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+
+    // Unlock ~600ms after the LAST wheel event, so a single swipe's inertia tail
+    // keeps the lock alive (no second jump) but a fresh scroll moves right away.
+    const scheduleUnlock = () => {
+      clearTimeout(unlockTimer);
+      unlockTimer = setTimeout(() => { locked = false; }, 600);
+    };
 
     const goTo = (els, i) => {
       i = Math.max(0, Math.min(els.length - 1, i));
-      animating = true;
       scrollToSectionEl(els[i]);
-      clearTimeout(animTimer);
-      animTimer = setTimeout(() => { animating = false; }, 760);
     };
 
     const currentIdx = (els, vpTop) => {
@@ -125,20 +127,7 @@ function useSectionScroll(enabled) {
       return idx;
     };
 
-    // Push the "settled" moment further out on every event we own. idle only
-    // becomes true again ~380ms after the very last wheel — so a whole physical
-    // swipe (including the trackpad's long inertia tail, and any events that
-    // arrive during the snap animation) advances exactly one section.
-    const refresh = () => {
-      clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => { idle = true; }, 380);
-    };
-
     const onWheel = (e) => {
-      // While a snap is animating, swallow everything (incl. inertia) and keep
-      // the timer fresh — this is what prevents the post-animation tail from
-      // being read as a new gesture and jumping a second section.
-      if (animating) { e.preventDefault(); refresh(); return; }
       const els = list();
       if (els.length < 2) return;
       const vpTop = window.scrollY;
@@ -156,11 +145,11 @@ function useSectionScroll(enabled) {
       }
       if (dir > 0 && idx >= els.length - 1) return; // finishing → release into contact
       if (dir < 0 && idx <= 0) return;              // already at the hero
-      // We're taking over scrolling for the deck.
+      // The deck owns this scroll.
       e.preventDefault();
-      refresh();
-      if (!idle) return;
-      idle = false;
+      scheduleUnlock();      // every wheel (incl. inertia) keeps the lock alive
+      if (locked) return;    // mid-swipe / inertia → ignore
+      locked = true;         // leading edge of a fresh scroll → move one section now
       goTo(els, idx + dir);
     };
 
@@ -180,7 +169,7 @@ function useSectionScroll(enabled) {
       if (up && idx <= 0) return;
       e.preventDefault();
       const now = Date.now();
-      if (animating || now - lastNav < 600) return;
+      if (now - lastNav < 500) return;   // simple cooldown for held/repeated keys
       lastNav = now;
       goTo(els, idx + (down ? 1 : -1));
     };
@@ -190,8 +179,7 @@ function useSectionScroll(enabled) {
     return () => {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', onKey);
-      clearTimeout(animTimer);
-      clearTimeout(settleTimer);
+      clearTimeout(unlockTimer);
     };
   }, [enabled]);
 }
