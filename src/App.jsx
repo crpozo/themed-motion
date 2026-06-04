@@ -349,7 +349,6 @@ function Section({ id, num, chapter, title, em, beats, visual, flip }) {
       <div className="sec-panel">
         <div className="sec-head reveal">
           <div className="sec-num">{num}<span>/ 07</span></div>
-          <div className="sec-kicker">{chapter}</div>
           <h2 className="sec-title">{title} <em>{em}</em></h2>
         </div>
         <div className="sec-beats reveal d1">
@@ -433,7 +432,8 @@ function ControlVisual() {
         shadow-intensity="0.9"
         shadow-softness="0.85"
         exposure="1.05"
-        camera-orbit="25deg 75deg 105%"
+        camera-orbit={isBox ? '20deg 72deg 100%' : '25deg 75deg 105%'}
+        camera-target={isBox ? '1.12m 0.14m -0.05m' : 'auto auto auto'}
       ></model-viewer>
       <div className="mv-toggle" role="group" aria-label="Choose model">
         <button type="button" className={isBox ? 'is-active' : ''} onClick={() => setModel('box')}>Control box</button>
@@ -510,7 +510,6 @@ function FinishingSection({ beats }) {
       <div className="finishing-inner">
         <div className="sec-head reveal">
           <div className="sec-num">07<span>/ 07</span></div>
-          <div className="sec-kicker">Finishing</div>
           <h2 className="sec-title">And then it <em>comes to life.</em></h2>
         </div>
         <div className="sec-beats finishing-beats reveal d1">
