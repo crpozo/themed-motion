@@ -82,20 +82,16 @@ function useScrolled(factor = 0.6) {
 
 // Section IDs the deck snaps between (the journey; the tall contact/footer tail
 // is intentionally left to normal scroll).
-const SNAP_IDS = ['top', 'design', 'engineering', 'analysis', 'actuators', 'control', 'animation', 'finishing'];
+const SNAP_IDS = ['top', 'design', 'engineering', 'analysis', 'actuators', 'control', 'animation', 'finishing', 'contact'];
 
 // Scroll a section into place. Full-height journey sections snap to their true
 // top (the fixed nav overlays them; their content is already padded clear of
 // it); the hero goes to 0 and the shorter contact tail clears the nav.
 function scrollToSectionEl(el) {
   if (!el) return;
-  const nav = document.querySelector('.nav');
-  const navH = (nav && nav.offsetHeight) || 100;
-  let top;
-  if (el.id === 'top') top = 0;
-  else if (el.id === 'contact') top = Math.max(0, el.offsetTop - navH);
-  else top = el.offsetTop;
-  window.scrollTo({ top, behavior: 'smooth' });
+  // Sections fill the viewport with their content padded clear of the fixed nav,
+  // so we snap to the section's true top (hero goes to 0).
+  window.scrollTo({ top: el.id === 'top' ? 0 : el.offsetTop, behavior: 'smooth' });
 }
 
 // Desktop "one scroll = next section" (fullpage-style). A single wheel gesture
@@ -510,10 +506,8 @@ function ControlVisual() {
         className="mv"
         src={isBox ? 'assets/control-box.glb' : 'assets/fscs.glb'}
         alt={isBox ? 'CritterControl control box — 3D' : 'CritterControl FSCS module — 3D'}
+        orientation={isBox ? '0deg -90deg 0deg' : '0deg 0deg 0deg'}
         camera-controls
-        auto-rotate
-        auto-rotate-delay="0"
-        rotation-per-second="26deg"
         interaction-prompt="none"
         disable-zoom
         touch-action="pan-y"
@@ -522,7 +516,7 @@ function ControlVisual() {
         shadow-intensity="0.9"
         shadow-softness="0.85"
         exposure="1.05"
-        camera-orbit="35deg 75deg 105%"
+        camera-orbit="25deg 75deg 105%"
       ></model-viewer>
       <div className="mv-toggle" role="group" aria-label="Choose model">
         <button type="button" className={isBox ? 'is-active' : ''} onClick={() => setModel('box')}>Control box</button>

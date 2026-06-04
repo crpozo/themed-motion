@@ -802,7 +802,8 @@ section { position: relative; }
 /* ---- Contact ---- */
 .contact {
   position: relative;
-  padding: 120px 28px 100px;
+  /* top padding clears the fixed nav so the heading is never hidden under it */
+  padding: calc(var(--nav-h) + 24px) 28px 52px;
   background: #000;
   color: var(--bg);
   border-top: 1px solid #000;
@@ -822,8 +823,8 @@ section { position: relative; }
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1.05fr 1fr;
-  gap: 80px;
-  align-items: start;
+  gap: 64px;
+  align-items: center;
 }
 .contact .kicker {
   font-family: var(--mono);
@@ -840,8 +841,8 @@ section { position: relative; }
 .contact h2 {
   font-family: var(--serif);
   font-weight: 700;
-  font-size: clamp(48px, 6.4vw, 104px);
-  line-height: 0.92;
+  font-size: clamp(38px, 4.8vw, 72px);
+  line-height: 0.94;
   margin: 0;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -849,20 +850,20 @@ section { position: relative; }
 .contact h2 em { font-style: normal; color: var(--accent); }
 .contact .lede {
   font-family: var(--sans);
-  font-size: 17px;
-  line-height: 1.55;
-  margin-top: 24px;
-  max-width: 44ch;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-top: 18px;
+  max-width: 46ch;
   color: rgba(255,255,255,0.75);
 }
 .contact .info {
-  margin-top: 42px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px;
+  margin-top: 24px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px;
   font-family: var(--mono);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  padding-top: 28px;
+  padding-top: 20px;
   border-top: 1px solid rgba(255,255,255,0.12);
   max-width: 480px;
 }
@@ -946,9 +947,9 @@ section { position: relative; }
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 4px;
-  padding: 36px 32px 32px;
+  padding: 26px 28px 24px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
   backdrop-filter: blur(8px);
 }
 .contact form .form-title {
@@ -968,7 +969,7 @@ section { position: relative; }
   color: rgba(255,255,255,0.5);
   margin: -6px 0 14px;
 }
-.contact .field { display: grid; gap: 7px; }
+.contact .field { display: grid; gap: 6px; }
 .contact .field label {
   font-family: var(--mono);
   font-size: 10px;
@@ -995,7 +996,7 @@ section { position: relative; }
 .contact .field select:focus {
   border-color: var(--accent);
 }
-.contact .field textarea { min-height: 84px; }
+.contact .field textarea { min-height: 60px; }
 .contact .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.5) 50%), linear-gradient(135deg, rgba(255,255,255,0.5) 50%, transparent 50%); background-position: calc(100% - 14px) center, calc(100% - 9px) center; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
 .contact .field select option { background: var(--ink); color: var(--bg); }
 /* Placeholders: softer + warmer than the mono labels (which sit at .55 white) */
@@ -2034,17 +2035,18 @@ html { scroll-padding-top: var(--nav-h); }
   scroll-snap-align: start; scroll-snap-stop: always;
 }
 .finishing-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-/* Even, fairly dark filter so the white text reads over any part of the video */
+/* Light filter — just enough for the text to read; the text-shadow does the
+   heavy lifting so the video stays bright and visible. */
 .finishing-scrim {
   position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(6,6,6,0.74) 0%, rgba(6,6,6,0.6) 45%, rgba(6,6,6,0.76) 100%),
-    linear-gradient(90deg, rgba(6,6,6,0.5) 0%, rgba(6,6,6,0.34) 60%, rgba(6,6,6,0.48) 100%);
+    linear-gradient(180deg, rgba(8,8,8,0.46) 0%, rgba(8,8,8,0.3) 45%, rgba(8,8,8,0.48) 100%),
+    linear-gradient(90deg, rgba(8,8,8,0.3) 0%, rgba(8,8,8,0.1) 60%, rgba(8,8,8,0.22) 100%);
 }
 .finishing-inner {
   position: relative; z-index: 2; width: 100%; max-width: 1280px; margin: 0 auto; color: #fff;
   padding: calc(var(--nav-h) + 22px) clamp(24px, 5vw, 64px) 36px;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 2px 16px rgba(0, 0, 0, 0.6);
 }
 .finishing .sec-num { color: var(--accent); }
 .finishing .sec-kicker { color: rgba(255,255,255,0.78); }
@@ -2184,7 +2186,11 @@ html { scroll-padding-top: var(--nav-h); }
   background-color: transparent;
   --progress-bar-color: var(--accent);
   --progress-mask: transparent;
+  /* Gentle float — it doesn't spin on its own */
+  animation: mv-float 5.5s ease-in-out infinite;
 }
+@keyframes mv-float { 0%, 100% { transform: translateY(-9px); } 50% { transform: translateY(9px); } }
+@media (prefers-reduced-motion: reduce) { .mv { animation: none; } }
 .mv-tag {
   position: absolute; left: 18px; bottom: 16px;
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
@@ -2234,4 +2240,24 @@ html { scroll-padding-top: var(--nav-h); }
   .sec .beat { grid-template-columns: 44px 1fr; gap: 12px; padding-bottom: 7px; }
   .sec .beat-body h3 { font-size: 14px; margin-bottom: 2px; }
   .sec .beat-body p { font-size: 11.5px; line-height: 1.36; }
+}
+
+/* Keep the Contact section within the viewport on shorter screens too */
+@media (max-height: 860px) {
+  .contact { padding-top: calc(var(--nav-h) + 14px); padding-bottom: 36px; }
+  .contact h2 { font-size: clamp(32px, 4vw, 54px); }
+  .contact .lede { font-size: 14px; margin-top: 14px; line-height: 1.45; }
+  .contact .info { margin-top: 16px; padding-top: 14px; gap: 12px 24px; }
+  .contact form { padding: 20px 22px 18px; gap: 12px; }
+  .contact form .form-title { font-size: 19px; margin-bottom: 4px; }
+  .contact .field textarea { min-height: 50px; }
+  .contact button.cta-btn { padding: 13px 22px; margin-top: 6px; }
+}
+@media (max-height: 720px) {
+  .contact h2 { font-size: clamp(26px, 3.4vw, 40px); }
+  .contact .lede { display: none; }
+  .contact .info { margin-top: 12px; padding-top: 12px; }
+  .contact form { gap: 10px; padding: 16px 20px 16px; }
+  .contact .field textarea { min-height: 42px; }
+  .contact .field { gap: 4px; }
 }
