@@ -487,15 +487,18 @@ function UkkieStage() {
   );
 }
 
-// Control-section visual: the real FSCS hardware as a slowly spinning 3D model
-// (converted from the supplied STEP CAD). Lazy-loaded; pauses when off-screen.
+// Control-section visual: the real CritterControl hardware as slowly spinning
+// 3D models (converted from the supplied STEP CAD). Toggle between the control
+// box and the FSCS module inside it. Lazy-loaded; pauses when off-screen.
 function ControlVisual() {
+  const [model, setModel] = useState('box');
+  const isBox = model === 'box';
   return (
     <div className="mv-stage">
       <model-viewer
         className="mv"
-        src="assets/fscs.glb"
-        alt="CritterControl FSCS hardware module — 3D"
+        src={isBox ? 'assets/control-box.glb' : 'assets/fscs.glb'}
+        alt={isBox ? 'CritterControl control box — 3D' : 'CritterControl FSCS module — 3D'}
         camera-controls
         auto-rotate
         auto-rotate-delay="0"
@@ -510,7 +513,11 @@ function ControlVisual() {
         exposure="1.05"
         camera-orbit="35deg 75deg 105%"
       ></model-viewer>
-      <div className="mv-tag">CRITTERCONTROL · FSCS</div>
+      <div className="mv-toggle" role="group" aria-label="Choose model">
+        <button type="button" className={isBox ? 'is-active' : ''} onClick={() => setModel('box')}>Control box</button>
+        <button type="button" className={!isBox ? 'is-active' : ''} onClick={() => setModel('fscs')}>FSCS module</button>
+      </div>
+      <div className="mv-tag">CRITTERCONTROL · {isBox ? 'CONTROL BOX' : 'FSCS'}</div>
       <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
     </div>
   );

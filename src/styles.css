@@ -2197,3 +2197,19 @@ html { scroll-padding-top: var(--nav-h); }
   border: 1px solid var(--rule); border-radius: 999px; padding: 4px 9px;
   pointer-events: none; background: rgba(255,255,255,0.6);
 }
+
+/* Control 3D model toggle (box ⇄ FSCS) */
+.mv-toggle {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px; padding: 4px;
+  background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+  border: 1px solid var(--rule); border-radius: 999px; z-index: 2;
+}
+.mv-toggle button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-dim);
+  background: transparent; border: 0; cursor: pointer;
+  padding: 7px 13px; border-radius: 999px; transition: background .2s, color .2s;
+}
+.mv-toggle button:hover { color: var(--ink); }
+.mv-toggle button.is-active { background: var(--accent); color: #fff; }
