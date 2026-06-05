@@ -424,45 +424,53 @@ function UkkieStage() {
   );
 }
 
-// Control-section visual: the real CritterControl hardware as slowly spinning
-// 3D models (converted from the supplied STEP CAD). Toggle between the control
-// box and the FSCS module inside it. Lazy-loaded; pauses when off-screen.
+// Control-section visual: the real CritterControl hardware as 3D models
+// (converted from the supplied STEP CAD). Both pieces — the control box and the
+// FSCS module that lives inside it — are shown together, each independently
+// draggable. Auto radius lets model-viewer frame each model so neither clips.
 function ControlVisual() {
-  const [model, setModel] = useState('box');
-  const isBox = model === 'box';
-  // The box geometry sits off its bounding-box centre, so we aim the camera at
-  // the box body (camera-target) — a fixed world point that stays at the screen
-  // centre regardless of aspect ratio. Size comes from the orbit radius (smaller
-  // % = closer = bigger). When the layout stacks (≤900px) the visual fills the
-  // whole viewport, so we orbit much closer for a bigger model.
-  const isMobile = useIsMobile(900);
-  const boxOrbit = isMobile ? '18deg 74deg 52%' : '20deg 72deg 90%';
-  const boxTarget = '1.12m 0.14m -0.05m';
-  const fscsOrbit = isMobile ? '22deg 76deg 88%' : '25deg 75deg 105%';
   return (
-    <div className="mv-stage">
-      <model-viewer
-        className="mv"
-        src={isBox ? 'assets/control-box.glb' : 'assets/fscs.glb'}
-        alt={isBox ? 'CritterControl control box — 3D' : 'CritterControl FSCS module — 3D'}
-        orientation={isBox ? '0deg -90deg 0deg' : '0deg 0deg 0deg'}
-        camera-controls
-        interaction-prompt="none"
-        disable-zoom
-        touch-action="pan-y"
-        loading="lazy"
-        environment-image="neutral"
-        shadow-intensity="0.9"
-        shadow-softness="0.85"
-        exposure="1.05"
-        camera-orbit={isBox ? boxOrbit : fscsOrbit}
-        camera-target={isBox ? boxTarget : 'auto auto auto'}
-      ></model-viewer>
-      <div className="mv-toggle" role="group" aria-label="Choose model">
-        <button type="button" className={isBox ? 'is-active' : ''} onClick={() => setModel('box')}>Control box</button>
-        <button type="button" className={!isBox ? 'is-active' : ''} onClick={() => setModel('fscs')}>FSCS module</button>
+    <div className="mv-stage mv-duo">
+      <div className="mv-item">
+        <model-viewer
+          className="mv"
+          src="assets/control-box.glb"
+          alt="CritterControl control box — 3D"
+          orientation="0deg -90deg 0deg"
+          camera-controls
+          interaction-prompt="none"
+          disable-zoom
+          touch-action="pan-y"
+          loading="lazy"
+          environment-image="neutral"
+          shadow-intensity="0.9"
+          shadow-softness="0.85"
+          exposure="1.05"
+          camera-orbit="18deg 74deg auto"
+          camera-target="1.12m 0.14m -0.05m"
+        ></model-viewer>
+        <div className="mv-label">Control box</div>
       </div>
-      <div className="mv-tag">CRITTERCONTROL · {isBox ? 'CONTROL BOX' : 'FSCS'}</div>
+      <div className="mv-item">
+        <model-viewer
+          className="mv"
+          src="assets/fscs.glb"
+          alt="CritterControl FSCS module — 3D"
+          orientation="0deg 0deg 0deg"
+          camera-controls
+          interaction-prompt="none"
+          disable-zoom
+          touch-action="pan-y"
+          loading="lazy"
+          environment-image="neutral"
+          shadow-intensity="0.9"
+          shadow-softness="0.85"
+          exposure="1.05"
+          camera-orbit="22deg 75deg auto"
+          camera-target="auto auto auto"
+        ></model-viewer>
+        <div className="mv-label">FSCS module</div>
+      </div>
       <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
     </div>
   );
