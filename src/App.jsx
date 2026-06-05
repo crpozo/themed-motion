@@ -103,8 +103,9 @@ function scrollToSectionEl(el) {
 
 function Nav({ route }) {
   const onProjects = route === '#/projects';
+  const scrolled = useScrolled(0.08);
   return (
-    <nav className="nav">
+    <nav className={'nav' + (scrolled ? ' is-scrolled' : '')}>
       <a className="brand" href="#top" aria-label="ThemedMotion home">
         <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
       </a>
@@ -446,8 +447,9 @@ function ControlVisual() {
           shadow-intensity="0.9"
           shadow-softness="0.85"
           exposure="1.05"
-          camera-orbit="18deg 74deg auto"
+          camera-orbit="18deg 74deg 2m"
           camera-target="1.12m 0.14m -0.05m"
+          min-camera-orbit="auto auto 0.5m"
         ></model-viewer>
         <div className="mv-label">Control box</div>
       </div>
@@ -892,6 +894,11 @@ function Projects() {
 export default function App() {
   const route = useHashRoute();
   const onProjects = route === '#/projects';
+  // The Work/Projects page is a normal long page — never a snap deck.
+  useEffect(() => {
+    document.documentElement.classList.toggle('route-projects', onProjects);
+    return () => document.documentElement.classList.remove('route-projects');
+  }, [onProjects]);
   return (
     <>
       <Nav route={route} />
