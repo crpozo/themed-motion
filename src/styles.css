@@ -697,41 +697,6 @@ section { position: relative; }
 }
 
 /* ---- Pull quote ---- */
-.pullquote {
-  padding: 80px 28px;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  display: grid;
-  grid-template-columns: 220px 1fr 220px;
-  gap: 32px;
-  align-items: center;
-  background: var(--bg);
-}
-.pullquote .who {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-}
-.pullquote blockquote {
-  font-family: var(--serif);
-  font-weight: 600;
-  color: var(--ink);
-  font-style: normal;
-  font-size: clamp(28px, 3.4vw, 48px);
-  line-height: 1.18;
-  letter-spacing: -0.005em;
-  margin: 0;
-  color: var(--ink);
-  text-transform: uppercase;
-}
-.pullquote blockquote::before { content: "\201C"; color: var(--accent); margin-right: 4px; }
-.pullquote blockquote::after { content: "\201D"; color: var(--accent); margin-left: 4px; }
-.pullquote blockquote em { font-style: normal; color: var(--accent); }
-@media (max-width: 800px) {
-  .pullquote { grid-template-columns: 1fr; }
-}
 
 /* ---- Finale (Figure finishing) ---- */
 .finale {
@@ -1647,10 +1612,6 @@ footer {
 
   /* Slab divider */
   .slab { padding: 56px 20px; }
-
-  /* Pull quote */
-  .pullquote { padding: 56px 20px; grid-template-columns: 1fr; }
-  .pullquote blockquote { font-size: clamp(22px, 6vw, 32px); }
 
   /* Finale */
   .finale { padding: 72px 20px; }

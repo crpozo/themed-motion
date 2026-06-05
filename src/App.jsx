@@ -240,22 +240,6 @@ function Slab({ children, meta }) {
   );
 }
 
-function PullQuote({ who, role, text }) {
-  return (
-    <section className="pullquote">
-      <div className="who reveal">
-        <div>{who}</div>
-        <div style={{ opacity: 0.6, marginTop: 6 }}>{role}</div>
-      </div>
-      <blockquote className="reveal d1">{text}</blockquote>
-      <div className="who reveal d2" style={{ textAlign: 'right' }}>
-        <div>Studio note</div>
-        <div style={{ opacity: 0.6, marginTop: 6 }}>2026</div>
-      </div>
-    </section>
-  );
-}
-
 function Bp({ title, code, children }) {
   return (
     <div className="bp">
@@ -710,12 +694,6 @@ function Home() {
           { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
         ]}
         visual={<UkkieStage />}
-      />
-
-      <PullQuote
-        who="Jorge Davo Sainz"
-        role="Technology lead"
-        text="A great character is not defined by how many movements it has, but by how those movements are placed."
       />
 
       {/* 02 · ENGINEERING */}
