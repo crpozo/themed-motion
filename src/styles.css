@@ -1957,13 +1957,14 @@ html { scroll-padding-top: 0; }
   gap: clamp(18px, 2.4vh, 34px); max-width: 64ch;
 }
 .sec .beat {
-  display: grid; grid-template-columns: 60px 1fr; gap: 20px;
+  display: grid; grid-template-columns: 64px 1fr; gap: 20px;
   padding-bottom: clamp(16px, 2.2vh, 30px); border-bottom: 1px dashed var(--rule);
 }
 .sec .beat:last-child { border-bottom: 0; padding-bottom: 0; }
 .sec .beat-idx {
-  font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
   color: var(--ink-faint); padding-top: 7px;
+  white-space: nowrap;   /* keep "01 / 03" on a single line */
 }
 .sec .beat-body h3 {
   font-family: var(--serif); font-weight: 600; font-size: 23px;
@@ -2083,7 +2084,7 @@ html { scroll-padding-top: 0; }
   padding: 14px 0 0;
 }
 .finishing .beat-idx {
-  display: block; margin-bottom: 10px; padding: 0;
+  display: block; margin-bottom: 10px; padding: 0; white-space: nowrap;
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em;
   text-transform: uppercase; color: var(--accent);
 }
