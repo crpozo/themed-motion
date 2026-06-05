@@ -214,7 +214,7 @@ body {
   /* Scale past "cover" so YouTube's top title bar and bottom chrome are pushed
      outside the clipped banner — only the video itself stays visible. Combined
      with pointer-events:none this keeps the embed looking like a clean reel. */
-  transform: translate(-50%, -50%) scale(1.4);
+  transform: translate(-50%, -50%) scale(1.6);
   border: 0;
   pointer-events: none;
 }
@@ -1572,7 +1572,7 @@ footer {
     height: 56.25vw;
     min-width: calc(100svh * 16 / 9);
     min-height: 100svh;
-    transform: translate(-50%, -50%) scale(1.45);
+    transform: translate(-50%, -50%) scale(1.6);
   }
   .nav-steps { display: none; }
   .banner .copy { gap: 12px; padding: 0 18px; }
@@ -2126,12 +2126,17 @@ html { scroll-padding-top: 0; }
 @media (max-width: 920px) {
   .contact .peek-mormel { width: 174px; top: 52px; right: -26px; }
 }
+/* On stacked layouts the contact copy and the form are separate screens, so
+   make the form its own snap target — the CTA lands straight on it. */
+@media (max-width: 900px) {
+  .contact .form-wrap { scroll-snap-align: start; scroll-snap-stop: always; scroll-margin-top: 0; }
+}
 @media (max-width: 760px) {
-  .contact .peek-mormel { width: 148px; top: 44px; right: -16px; }
+  .contact .peek-mormel { width: 152px; top: 46px; right: -6px; }
   .contact .peek-mormel .speech { display: none; }
 }
 @media (max-width: 430px) {
-  .contact .peek-mormel { width: 118px; top: 34px; right: -8px; }
+  .contact .peek-mormel { width: 128px; top: 40px; right: -2px; }
 }
 
 /* ===== Vertical section slider (right edge) ===== */
@@ -2240,9 +2245,9 @@ html { scroll-padding-top: 0; }
 }
 .mv-toggle button:hover { color: var(--ink); }
 .mv-toggle button.is-active { background: var(--accent); color: #fff; }
-/* On phones the visual fills the viewport under the fixed nav — drop the
-   model toggle clear of the nav so it isn't hidden behind it. */
-@media (max-width: 760px) {
+/* When the layout stacks the visual fills the viewport under the fixed nav —
+   drop the model toggle clear of the nav so it isn't hidden behind it. */
+@media (max-width: 900px) {
   .mv-toggle { top: 64px; }
   .mv-toggle button { padding: 8px 14px; font-size: 11px; }
 }

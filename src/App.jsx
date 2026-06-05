@@ -430,12 +430,15 @@ function UkkieStage() {
 function ControlVisual() {
   const [model, setModel] = useState('box');
   const isBox = model === 'box';
-  // On phones the visual fills the viewport, so the model is framed tighter
-  // (the box's geometry is centered off-origin, hence the camera-target).
-  const isMobile = useIsMobile(760);
-  const boxOrbit = isMobile ? '15deg 76deg 48%' : '20deg 72deg 100%';
-  const boxTarget = isMobile ? '1.12m 0.10m -0.05m' : '1.12m 0.14m -0.05m';
-  const fscsOrbit = isMobile ? '22deg 76deg 90%' : '25deg 75deg 105%';
+  // The box geometry sits off its bounding-box centre, so we aim the camera at
+  // the box body (camera-target) — a fixed world point that stays at the screen
+  // centre regardless of aspect ratio. Size comes from the orbit radius (smaller
+  // % = closer = bigger). When the layout stacks (≤900px) the visual fills the
+  // whole viewport, so we orbit much closer for a bigger model.
+  const isMobile = useIsMobile(900);
+  const boxOrbit = isMobile ? '18deg 74deg 52%' : '20deg 72deg 90%';
+  const boxTarget = '1.12m 0.14m -0.05m';
+  const fscsOrbit = isMobile ? '22deg 76deg 88%' : '25deg 75deg 105%';
   return (
     <div className="mv-stage">
       <model-viewer
@@ -550,11 +553,26 @@ function FinishingSection({ beats }) {
 
 // Smoothly scroll to the contact section on the current page (it is rendered on
 // both Home and Projects), so "#contact" links never switch routes.
+// Jump straight to an element. CSS scroll-snap-stop:always + the global
+// scroll-behavior:smooth make native programmatic smooth scrolls refuse to
+// cross snap points, so we force an instant jump (snap then settles on the
+// target, which is itself a snap point).
+function jumpTo(el) {
+  if (!el) return;
+  const html = document.documentElement;
+  const prev = html.style.scrollBehavior;
+  html.style.scrollBehavior = 'auto';
+  window.scrollTo(0, Math.max(0, window.scrollY + el.getBoundingClientRect().top));
+  html.style.scrollBehavior = prev;
+}
+
 function scrollToContact(e) {
-  const el = document.getElementById('contact');
+  // Land straight on the brief form (skip the contact copy/heading), falling
+  // back to the section itself if the form isn't mounted for some reason.
+  const el = document.querySelector('.contact .form-wrap') || document.getElementById('contact');
   if (el) {
     e.preventDefault();
-    el.scrollIntoView({ behavior: 'smooth' });
+    jumpTo(el);
   }
 }
 
