@@ -315,7 +315,7 @@ body {
 }
 @media (max-width: 800px) {
   .banner .copy { grid-template-columns: 1fr; }
-  .banner { height: calc(88vh - var(--nav-h)); min-height: 480px; }
+  .banner { height: 100svh; min-height: 0; }
 }
 
 /* ---- Cast intro strip ---- */
@@ -1561,18 +1561,18 @@ footer {
   .nav-actions { gap: 12px; }
   .nav-cta { display: inline-flex; padding: 9px 14px; font-size: 10px; letter-spacing: 0.12em; }
 
-  /* Banner */
-  .banner { height: auto; min-height: 0; aspect-ratio: 16 / 11; margin-top: 56px; }
-  /* Cover the 16/11 banner with the 16/9 reel (height-matched, sides overflow)
-     and scale up so YouTube's title bar / chrome is cropped on mobile too. */
+  /* Banner — fill the whole phone viewport. */
+  .banner { height: 100svh; min-height: 0; aspect-ratio: auto; margin-top: 0; }
+  /* Cover the tall portrait banner with the 16:9 reel (height-matched, sides
+     overflow) and scale up so YouTube's title bar / chrome is cropped. */
   .banner iframe {
     left: 50%;
     top: 50%;
-    width: 122.3vw;
-    height: 68.75vw;
-    min-width: 0;
-    min-height: 0;
-    transform: translate(-50%, -50%) scale(1.55);
+    width: 100vw;
+    height: 56.25vw;
+    min-width: calc(100svh * 16 / 9);
+    min-height: 100svh;
+    transform: translate(-50%, -50%) scale(1.45);
   }
   .nav-steps { display: none; }
   .banner .copy { gap: 12px; padding: 0 18px; }
@@ -1973,10 +1973,19 @@ html { scroll-padding-top: 0; }
 .sec .beat-body p b { color: var(--ink); font-weight: 600; }
 
 @media (max-width: 900px) {
-  .sec { grid-template-columns: 1fr; min-height: 0; }
-  .sec-visual { position: relative; height: 56vh; order: -1 !important; }
+  /* Stack the two columns and let EACH one fill the phone viewport and snap
+     on its own, so a scroll moves visual → text → next visual → next text. */
+  .sec { grid-template-columns: 1fr; min-height: 0; scroll-snap-align: none; scroll-snap-stop: normal; }
+  .sec-visual {
+    position: relative; height: 100svh; order: -1 !important;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
   .sec.flip .sec-visual { border-left: 0; border-right: 0; }
-  .sec-panel { min-height: 0; padding: 36px 22px 44px; gap: 22px; justify-content: flex-start; }
+  .sec-panel {
+    min-height: 100svh; padding: 72px 22px 36px; gap: 20px;
+    justify-content: center;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
   .sec-beats { max-width: none; }
 }
 
@@ -2231,6 +2240,12 @@ html { scroll-padding-top: 0; }
 }
 .mv-toggle button:hover { color: var(--ink); }
 .mv-toggle button.is-active { background: var(--accent); color: #fff; }
+/* On phones the visual fills the viewport under the fixed nav — drop the
+   model toggle clear of the nav so it isn't hidden behind it. */
+@media (max-width: 760px) {
+  .mv-toggle { top: 64px; }
+  .mv-toggle button { padding: 8px 14px; font-size: 11px; }
+}
 
 /* ===== Keep each deck section within the viewport (shorter screens) ===== */
 @media (max-height: 880px) {

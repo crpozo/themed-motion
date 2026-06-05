@@ -63,6 +63,20 @@ function useHashRoute() {
   return hash;
 }
 
+// True when the viewport is phone-width. Used to frame the 3D models tighter
+// on mobile, where each visual fills the whole screen.
+function useIsMobile(maxWidth = 760) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [maxWidth]);
+  return mobile;
+}
+
 // Parent P&P Projects site — the "back" affordance pairs with the link they
 // add on their side pointing into this experience.
 const PP_PROJECTS_URL = 'https://www.ppprojects.com/';
@@ -416,6 +430,12 @@ function UkkieStage() {
 function ControlVisual() {
   const [model, setModel] = useState('box');
   const isBox = model === 'box';
+  // On phones the visual fills the viewport, so the model is framed tighter
+  // (the box's geometry is centered off-origin, hence the camera-target).
+  const isMobile = useIsMobile(760);
+  const boxOrbit = isMobile ? '15deg 76deg 48%' : '20deg 72deg 100%';
+  const boxTarget = isMobile ? '1.12m 0.10m -0.05m' : '1.12m 0.14m -0.05m';
+  const fscsOrbit = isMobile ? '22deg 76deg 90%' : '25deg 75deg 105%';
   return (
     <div className="mv-stage">
       <model-viewer
@@ -432,8 +452,8 @@ function ControlVisual() {
         shadow-intensity="0.9"
         shadow-softness="0.85"
         exposure="1.05"
-        camera-orbit={isBox ? '20deg 72deg 100%' : '25deg 75deg 105%'}
-        camera-target={isBox ? '1.12m 0.14m -0.05m' : 'auto auto auto'}
+        camera-orbit={isBox ? boxOrbit : fscsOrbit}
+        camera-target={isBox ? boxTarget : 'auto auto auto'}
       ></model-viewer>
       <div className="mv-toggle" role="group" aria-label="Choose model">
         <button type="button" className={isBox ? 'is-active' : ''} onClick={() => setModel('box')}>Control box</button>
