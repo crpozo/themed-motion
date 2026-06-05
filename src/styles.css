@@ -2045,7 +2045,7 @@ html.route-projects { scroll-snap-type: none; }
   display: flex; align-items: center; justify-content: center;
   background: var(--ink); overflow: hidden;
 }
-.curves-svg { width: 82%; max-width: 560px; }
+.curves-svg { width: 96%; max-width: 900px; }
 .curves-grid line { stroke: rgba(255,255,255,0.08); stroke-width: 1; }
 .curves-grid line.v { stroke: rgba(255,255,255,0.05); }
 .curve { stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: curve-draw 5s ease-in-out infinite alternate; }
@@ -2118,8 +2118,10 @@ html.route-projects { scroll-snap-type: none; }
 .contact .form-wrap { padding-top: 104px; }
 .contact .peek-mormel {
   width: 200px;
-  top: 62px;
-  right: -86px;
+  /* paw grips the card's top-right corner: top ≈ padding-top(104) − 0.188·width,
+     right ≈ −0.031·width (small overhang). Keep these in sync across breakpoints. */
+  top: 66px;
+  right: -6px;
   animation: none;            /* anchored — it holds the box, not floating */
 }
 .contact .peek-mormel .peek-base { width: 100%; height: auto; display: block; transform: none; }
@@ -2134,10 +2136,10 @@ html.route-projects { scroll-snap-type: none; }
 /* Responsive: keep it gripping the top-right corner without overflowing as the
    form narrows / the layout stacks. */
 @media (max-width: 1180px) {
-  .contact .peek-mormel { width: 188px; top: 58px; right: -48px; }
+  .contact .peek-mormel { width: 188px; top: 68px; right: -6px; }
 }
 @media (max-width: 920px) {
-  .contact .peek-mormel { width: 174px; top: 52px; right: -26px; }
+  .contact .peek-mormel { width: 174px; top: 71px; right: -6px; }
 }
 /* On stacked layouts the contact copy and the form are separate screens, so
    make the form its own snap target — the CTA lands straight on it. */
@@ -2145,11 +2147,11 @@ html.route-projects { scroll-snap-type: none; }
   .contact .form-wrap { scroll-snap-align: start; scroll-snap-stop: always; scroll-margin-top: 0; }
 }
 @media (max-width: 760px) {
-  .contact .peek-mormel { width: 152px; top: 46px; right: -6px; }
+  .contact .peek-mormel { width: 152px; top: 75px; right: -6px; }
   .contact .peek-mormel .speech { display: none; }
 }
 @media (max-width: 430px) {
-  .contact .peek-mormel { width: 128px; top: 40px; right: -2px; }
+  .contact .peek-mormel { width: 128px; top: 80px; right: -4px; }
 }
 
 /* ===== Vertical section slider (right edge) ===== */
