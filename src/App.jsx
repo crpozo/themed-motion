@@ -474,8 +474,9 @@ function VulkanStage() {
   const [shell, setShell] = useState(100); // 100 = body, 0 = structure
 
   // Shared fixed camera (both models live in the same world space).
+  // theta 102° = rotated 90° from the side view so the figure faces front.
   const TARGET = '6.585m 119.8m -3.3m';
-  const ORBIT = '12deg 80deg 560m';
+  const ORBIT = '102deg 80deg 560m';
 
   // Lock the structure's animation time to the body's, every frame.
   useEffect(() => {
