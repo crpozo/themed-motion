@@ -461,6 +461,124 @@ function ControlVisual() {
   );
 }
 
+// Engineering-section visual: the real Vulkan SC11 figure as two synced animated
+// models — one with shells (the body) layered over one with only the internal
+// structure. They share one fixed camera so the skeleton lines up exactly under
+// the body; a slider cross-fades between them (mid = x-ray). The animations are
+// the same "ArmatureAction" clip, kept frame-locked so the blend always matches.
+function VulkanStage() {
+  const wrapRef = useRef(null);
+  const shellsRef = useRef(null);
+  const frameRef = useRef(null);
+  const tweenRef = useRef(0);
+  const [shell, setShell] = useState(100); // 100 = body, 0 = structure
+
+  // Shared fixed camera (both models live in the same world space).
+  const TARGET = '6.585m 119.8m -3.3m';
+  const ORBIT = '12deg 80deg 560m';
+
+  // Lock the structure's animation time to the body's, every frame.
+  useEffect(() => {
+    let raf;
+    const sync = () => {
+      const s = shellsRef.current, f = frameRef.current;
+      if (s && f && s.loaded && f.loaded) {
+        const st = s.currentTime || 0;
+        if (Math.abs((f.currentTime || 0) - st) > 0.03) f.currentTime = st;
+      }
+      raf = requestAnimationFrame(sync);
+    };
+    raf = requestAnimationFrame(sync);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // tween the blend value smoothly (used for the auto reveal).
+  const tween = (from, to, dur) => {
+    cancelAnimationFrame(tweenRef.current);
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / dur);
+      const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      setShell(from + (to - from) * e);
+      if (t < 1) tweenRef.current = requestAnimationFrame(step);
+    };
+    tweenRef.current = requestAnimationFrame(step);
+  };
+
+  // On first reveal: show the body, then cross-fade to the structure once.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    let done = false;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting && !done) {
+          done = true;
+          window.setTimeout(() => tween(100, 0, 1900), 2800);
+        }
+      }),
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div className="vulkan-stage" ref={wrapRef}>
+      <div className="vulkan-models">
+        <model-viewer
+          ref={frameRef}
+          className="vulkan-mv"
+          src="assets/vulkan-frame.glb"
+          alt="Vulkan SC11 internal structure — animated"
+          autoplay
+          animation-name="ArmatureAction"
+          interaction-prompt="none"
+          camera-target={TARGET}
+          camera-orbit={ORBIT}
+          loading="lazy"
+          environment-image="neutral"
+          shadow-intensity="0.35"
+          shadow-softness="1"
+          exposure="1.05"
+        ></model-viewer>
+        <model-viewer
+          ref={shellsRef}
+          className="vulkan-mv vulkan-shells"
+          src="assets/vulkan-shells.glb"
+          alt="Vulkan SC11 with shells — animated"
+          style={{ opacity: shell / 100 }}
+          autoplay
+          animation-name="ArmatureAction"
+          interaction-prompt="none"
+          camera-target={TARGET}
+          camera-orbit={ORBIT}
+          loading="lazy"
+          environment-image="neutral"
+          shadow-intensity="0.35"
+          shadow-softness="1"
+          exposure="1.05"
+        ></model-viewer>
+      </div>
+      <div className="vulkan-controls">
+        <span className="vulkan-end">Structure</span>
+        <input
+          className="vulkan-slider"
+          type="range"
+          min="0"
+          max="100"
+          value={Math.round(shell)}
+          onChange={(e) => { cancelAnimationFrame(tweenRef.current); setShell(+e.target.value); }}
+          aria-label="Blend between internal structure and body shells"
+          style={{ '--fill': `${Math.round(shell)}%` }}
+        />
+        <span className="vulkan-end">Body</span>
+      </div>
+      <div className="rotate3d-tag">VULKAN SC11</div>
+    </div>
+  );
+}
+
 // Animation-section visual: an artsy, abstract representation of motion curves on
 // a timeline (we can't show the real CritterControl software for IP reasons).
 function CurvesVisual() {
@@ -709,15 +827,7 @@ function Home() {
           { h: 'Designed for long-term operation.', p: <>Mechanical engineering is not only about making a figure move, but about making it reliable, maintainable, and built for long-term operation. We focus on service accessibility, durable construction, efficient layouts, and components that withstand continuous use in demanding environments.</> },
           { h: 'Built for all conditions.', p: <>Our creations rarely live in ideal environments. Outdoor installations, underwater scenes, chlorinated or salt water, humidity, dust, heat, and continuous indoor operation each place different demands on a character. We design with those conditions in mind from the very beginning.</> },
         ]}
-        visual={
-          <div className="mech-stage">
-            <div className="mech-figure">
-              <img src="assets/vulkan-skeleton.png" alt="Vulkan internal mechanical structure" />
-            </div>
-            <div className="mech-floor"></div>
-            <div className="rotate3d-tag">VULKAN SC11 · FRAME</div>
-          </div>
-        }
+        visual={<VulkanStage />}
       />
 
       {/* 03 · ANALYSIS */}
