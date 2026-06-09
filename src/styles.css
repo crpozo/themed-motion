@@ -2030,8 +2030,9 @@ html.route-projects { scroll-snap-type: none; }
   --poster-color: transparent; background-color: transparent;
   --progress-bar-color: var(--accent); --progress-mask: transparent;
 }
-/* Stack the two on phones so each gets the full width. */
-@media (max-width: 900px) {
+/* Stack the two below tablet so each model gets full width (side-by-side gets
+   too cramped — narrow models and the label/hint row collide). */
+@media (max-width: 1024px) {
   .design-duo { flex-direction: column; }
   .design-col + .design-col { border-left: 0; border-top: 1px solid var(--rule); }
 }
@@ -2291,6 +2292,13 @@ html.route-projects { scroll-snap-type: none; }
   position: absolute; bottom: 16px; left: 0; right: 0; text-align: center;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
   text-transform: uppercase; color: var(--ink-dim); pointer-events: none;
+}
+/* In the Design duo the label shares the row with the "drag" pill, so pin it
+   to the left and leave room on the right instead of centering full-width. */
+.design-col .mv-label {
+  left: 18px; right: auto; text-align: left;
+  max-width: calc(100% - 150px); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
 /* Stack the two models on phones so each gets the full width. */
 @media (max-width: 900px) {
