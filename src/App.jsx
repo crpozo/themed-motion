@@ -916,15 +916,16 @@ function Home() {
   );
 }
 
+// Order interleaves landscape/portrait shots so the masonry columns balance.
 const PROJECTS = [
-  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character', wide: true },
-  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure', wide: true },
-  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware', wide: true },
+  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character' },
   { img: 'peek-animatronic.png', name: 'The Guardian', cat: 'Full-body figure' },
+  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure' },
   { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
   { img: 'joey-front.png', name: 'Joey · Finish', cat: 'Paint & silicone' },
-  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation', wide: true },
+  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware' },
   { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis' },
+  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation' },
 ];
 
 function Projects() {
@@ -935,12 +936,9 @@ function Projects() {
   return (
     <>
       <header className="portfolio-head">
-        <div className="portfolio-head-bg" aria-hidden="true">
-          <img className="portfolio-head-img" src="assets/octopus-hero.png" alt="" />
-        </div>
         <div className="portfolio-head-inner reveal">
           <div className="kicker">Selected work · 2016—2026</div>
-          <h1>Projects.</h1>
+          <h1>Work<span className="dot">.</span></h1>
           <p className="head-sub">
             Characters, show figures and custom show-action mechanisms — designed,
             engineered and built end to end in our studio for theme parks, museums
@@ -967,7 +965,6 @@ function Projects() {
               aria-label={`${p.name} — ${p.cat}`}
             >
               <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
-              <span className="proj-explore">Explore →</span>
               <div className="proj-overlay">
                 <div className="proj-cat">{p.cat}</div>
                 <div className="proj-name">{p.name}</div>
