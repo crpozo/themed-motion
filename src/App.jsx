@@ -104,23 +104,88 @@ function scrollToSectionEl(el) {
 function Nav({ route }) {
   const onProjects = route === '#/projects';
   const scrolled = useScrolled(0.08);
-  return (
-    <nav className={'nav' + (scrolled ? ' is-scrolled' : '')}>
-      <a className="brand" href="#top" aria-label="ThemedMotion home">
-        <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
-      </a>
+  const [menuOpen, setMenuOpen] = useState(false);
 
-      <div className="nav-actions">
-        <a className="nav-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer" aria-label="Go to P&P Projects (opens in a new tab)" title="P&P Projects">
-          <span className="nav-back-label">P&amp;P Projects</span>
-          <span className="nav-back-arrow" aria-hidden="true">↗</span>
+  // Freeze page scroll while the mobile menu is open.
+  useEffect(() => {
+    document.documentElement.classList.toggle('menu-open', menuOpen);
+    return () => document.documentElement.classList.remove('menu-open');
+  }, [menuOpen]);
+  // Close the menu whenever the route changes (e.g. Work was tapped).
+  useEffect(() => { setMenuOpen(false); }, [route]);
+
+  // Jump to a home section from the menu; from the Work page, go home first.
+  const goSection = (id) => (e) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    const go = () => {
+      const el = id === 'top' ? document.body : document.getElementById(id);
+      if (id === 'top') window.scrollTo(0, 0);
+      else if (el) jumpTo(el);
+    };
+    if (window.location.hash.startsWith('#/')) {
+      window.location.hash = '';
+      window.setTimeout(go, 60);
+    } else go();
+  };
+
+  const menuItems = [{ id: 'top', label: 'Intro' }, ...SECTIONS];
+
+  return (
+    <>
+      <nav className={'nav' + (scrolled ? ' is-scrolled' : '') + (menuOpen ? ' menu-is-open' : '')}>
+        <a className="brand" href="#top" aria-label="ThemedMotion home" onClick={goSection('top')}>
+          <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
         </a>
-        <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
-          Work
-        </a>
-        <a className="nav-cta" href="#contact" onClick={scrollToContact}>Let's Make It Move →</a>
-      </div>
-    </nav>
+
+        <div className="nav-actions">
+          <a className="nav-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer" aria-label="Go to P&P Projects (opens in a new tab)" title="P&P Projects">
+            <span className="nav-back-label">P&amp;P Projects</span>
+            <span className="nav-back-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
+            Work
+          </a>
+          <a className="nav-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
+          <button
+            type="button"
+            className={'nav-burger' + (menuOpen ? ' is-open' : '')}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Sibling of the nav: .nav's backdrop-filter would otherwise become the
+          containing block for this fixed overlay and clip it to the bar. */}
+      {menuOpen && (
+        <div className="mobile-menu" id="mobile-menu">
+          <div className="mm-kicker">Menu</div>
+          <div className="mm-links">
+            {menuItems.map((it, i) => (
+              <a key={it.id} className="mm-link" href={`#${it.id}`} onClick={goSection(it.id)}>
+                <span className="idx">{String(i).padStart(2, '0')}</span>
+                {it.label}
+              </a>
+            ))}
+            <a className="mm-link" href="#/projects" onClick={() => setMenuOpen(false)}>
+              <span className="idx">↗</span>
+              Work
+            </a>
+          </div>
+          <div className="mm-foot">
+            <a className="mm-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
+            <a className="mm-ext" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">
+              P&amp;P Projects ↗
+            </a>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -410,6 +475,40 @@ function UkkieStage() {
       <div className="ukkie-svg" dangerouslySetInnerHTML={{ __html: ukkieModelSvg }} />
       <div className="ukkie-floor" aria-hidden="true"></div>
       <div className="ukkie-tag">UKKIE · SKETCH → MODEL</div>
+    </div>
+  );
+}
+
+// Design-section visual: the concept sketch (left) next to the rigged, animated
+// 3D critter (right) — idea and result side by side.
+function DesignVisual() {
+  return (
+    <div className="design-duo">
+      <div className="design-col">
+        <UkkieStage />
+      </div>
+      <div className="design-col">
+        <model-viewer
+          className="design-mv"
+          src="assets/critter.glb"
+          alt="Critter — rigged, animated 3D model"
+          autoplay
+          animation-name="ArmatureAction"
+          camera-controls
+          interaction-prompt="none"
+          disable-zoom
+          touch-action="pan-y"
+          loading="lazy"
+          environment-image="neutral"
+          shadow-intensity="0.8"
+          shadow-softness="0.9"
+          exposure="1.05"
+          camera-orbit="auto auto auto"
+          camera-target="auto auto auto"
+        ></model-viewer>
+        <div className="mv-label">Rigged 3D model</div>
+        <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
+      </div>
     </div>
   );
 }
@@ -817,7 +916,7 @@ function Home() {
           { h: 'Creative 3D modelling.', p: <>An idea truly starts to take shape once it becomes three-dimensional. During the modelling process, sketches, references or existing models are translated into a detailed digital sculpture that defines the appearance and proportions of the figure.</> },
           { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
         ]}
-        visual={<UkkieStage />}
+        visual={<DesignVisual />}
       />
 
       {/* 02 · ENGINEERING */}
