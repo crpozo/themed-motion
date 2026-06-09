@@ -2128,13 +2128,24 @@ html.route-projects { scroll-snap-type: none; }
 
 /* ---- Contact: Mormel gripping the top-right corner of the form box ---- */
 .contact .form-wrap { padding-top: 104px; }
+/* Default placement — used at every width that can't spare room to the RIGHT of
+   the form (narrower desktop, tablet, mobile). The creature sits fully ON the
+   card's top-right area so it never clips at any resolution. The `right` anchors
+   the image's right edge near the card edge (form-wrap == card at all widths). */
 .contact .peek-mormel {
   width: 200px;
-  /* paw grips the card's top-right corner: top ≈ padding-top(104) − 0.188·width,
-     right ≈ −0.031·width (small overhang). Keep these in sync across breakpoints. */
   top: 66px;
   right: -6px;
+  transform: none;
   animation: none;            /* anchored — it holds the box, not floating */
+}
+/* Wide screens have a real margin to the right of the form, so there we glue the
+   PAW exactly onto the corner. The offset is a transform of the creature's OWN
+   width (translateX %), so the paw tracks the corner identically at every
+   resolution — no resolution-dependent `right` value, and it never jumps. The
+   threshold is where the margin first exceeds the creature's right overhang. */
+@media (min-width: 1440px) {
+  .contact .peek-mormel { right: 0; transform: translateX(44.5%); }
 }
 .contact .peek-mormel .peek-base { width: 100%; height: auto; display: block; transform: none; }
 .contact .peek-mormel .peek-paw {
@@ -2145,13 +2156,13 @@ html.route-projects { scroll-snap-type: none; }
 @media (prefers-reduced-motion: reduce) {
   .contact .peek-mormel .peek-paw { animation: none; }
 }
-/* Responsive: keep it gripping the top-right corner without overflowing as the
-   form narrows / the layout stacks. */
+/* Smaller widths only resize/reposition the on-card placement (they inherit the
+   default right:-6 / transform:none, so the creature never overflows). */
 @media (max-width: 1180px) {
-  .contact .peek-mormel { width: 188px; top: 68px; right: -6px; }
+  .contact .peek-mormel { width: 188px; top: 68px; }
 }
 @media (max-width: 920px) {
-  .contact .peek-mormel { width: 174px; top: 71px; right: -6px; }
+  .contact .peek-mormel { width: 174px; top: 71px; }
 }
 /* On stacked layouts the contact copy and the form are separate screens, so
    make the form its own snap target — the CTA lands straight on it. */
