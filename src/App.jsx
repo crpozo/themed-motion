@@ -501,7 +501,7 @@ function DesignVisual() {
           shadow-intensity="0.8"
           shadow-softness="0.9"
           exposure="1.05"
-          camera-orbit="50deg 80deg auto"
+          camera-orbit="40deg 74deg auto"
           camera-target="auto auto auto"
         ></model-viewer>
         <div className="mv-label">Rigged 3D model</div>
