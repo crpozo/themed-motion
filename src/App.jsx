@@ -239,13 +239,11 @@ function Banner() {
         aria-hidden="true"
       />
       <div className="copy">
-        <div>
-          <h1>Quality motion for <em>powerful stories</em>.</h1>
-          <p className="banner-sub">Animatronics, animated figures and show action equipment</p>
-        </div>
+        <div className="banner-kicker">Animatronics · Animated figures · Show action</div>
+        <h1>Quality motion for<br /><em>powerful stories.</em></h1>
       </div>
-      <div className="scroll-cue">
-        <span>Scroll</span>
+      <div className="banner-meta">Eindhoven, NL · Est. P&amp;P Projects</div>
+      <div className="scroll-cue" aria-hidden="true">
         <span className="line"></span>
       </div>
     </section>
@@ -503,7 +501,7 @@ function DesignVisual() {
           shadow-intensity="0.8"
           shadow-softness="0.9"
           exposure="1.05"
-          camera-orbit="auto auto auto"
+          camera-orbit="50deg 80deg auto"
           camera-target="auto auto auto"
         ></model-viewer>
         <div className="mv-label">Rigged 3D model</div>
@@ -1016,15 +1014,17 @@ function Home() {
 }
 
 // Order interleaves landscape/portrait shots so the masonry columns balance.
+// `card: true` frames the piece on a cream card (concept art / drawings),
+// mixing light tiles into the dark gallery like the reference.
 const PROJECTS = [
   { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character' },
   { img: 'peek-animatronic.png', name: 'The Guardian', cat: 'Full-body figure' },
-  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure' },
+  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure', card: true },
   { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
   { img: 'joey-front.png', name: 'Joey · Finish', cat: 'Paint & silicone' },
   { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware' },
-  { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis' },
-  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation' },
+  { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis', card: true },
+  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation', card: true },
 ];
 
 function Projects() {
@@ -1037,7 +1037,18 @@ function Projects() {
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
           <div className="kicker">Selected work · 2016—2026</div>
-          <h1>Work<span className="dot">.</span></h1>
+          <div className="work-title-wrap">
+            <svg className="work-bolt" viewBox="0 0 100 160" aria-hidden="true">
+              <polygon points="62,0 18,86 46,86 30,160 84,62 54,62" />
+            </svg>
+            <svg className="work-sparks" viewBox="0 0 60 40" aria-hidden="true">
+              <path d="M8 32 L20 14" />
+              <path d="M28 36 L34 8" />
+              <path d="M46 34 L56 18" />
+            </svg>
+            <h1>Work<span className="dot">.</span></h1>
+            <div className="work-side">An animatronics studio</div>
+          </div>
           <p className="head-sub">
             Characters, show figures and custom show-action mechanisms — designed,
             engineered and built end to end in our studio for theme parks, museums
@@ -1057,16 +1068,18 @@ function Projects() {
           {PROJECTS.map((p, i) => (
             <a
               key={p.img}
-              className={'proj-tile reveal' + (p.wide ? ' proj-wide' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
+              className={'proj-tile reveal' + (p.card ? ' proj-card' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
               href="#contact"
               onClick={scrollToContact}
               data-index={String(i + 1).padStart(2, '0')}
               aria-label={`${p.name} — ${p.cat}`}
             >
-              <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
-              <div className="proj-overlay">
-                <div className="proj-cat">{p.cat}</div>
-                <div className="proj-name">{p.name}</div>
+              <div className="proj-media">
+                <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
+              </div>
+              <div className="proj-meta">
+                <span className="proj-cat">{p.cat}</span>
+                <span className="proj-name">{p.name}</span>
               </div>
             </a>
           ))}
