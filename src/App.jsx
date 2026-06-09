@@ -899,27 +899,33 @@ function Home() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Warm the heavy below-the-fold 3D models in the background as soon as the
-  // visitor starts scrolling. Each is several MB + Draco decode and is set to
-  // load lazily, so without this they only begin downloading once you reach
-  // their section — and you watch them load. Prefetching during the time spent
-  // reading sections 01–02 means they're cached (near-instant) on arrival, with
-  // no cost to initial page load (low-priority, and only after engagement).
+  // Warm the heavy below-the-fold 3D models in the background once the browser
+  // is idle after first paint. Each is several MB + Draco decode and loads
+  // lazily, so without this they only begin downloading on scroll-into-view —
+  // and you watch them load. Starting on idle (rather than on scroll) gives the
+  // critter — which sits in section 01, reached almost immediately — a real
+  // head start during the time spent on the hero. Lowest network priority, so
+  // it yields to the hero video and never delays initial paint.
   useEffect(() => {
-    let done = false;
-    const warm = () => {
-      if (done) return;
-      done = true;
-      ['assets/critter.glb', 'assets/vulkan-frame.glb', 'assets/vulkan-shells.glb'].forEach((href) => {
-        if (document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
-        const l = document.createElement('link');
-        l.rel = 'prefetch';
-        l.href = href;
-        document.head.appendChild(l);
-      });
+    let cancelled = false;
+    const prefetch = (href) => {
+      if (cancelled || document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
+      const l = document.createElement('link');
+      l.rel = 'prefetch';
+      l.href = href;
+      document.head.appendChild(l);
     };
-    window.addEventListener('scroll', warm, { passive: true, once: true });
-    return () => window.removeEventListener('scroll', warm);
+    const ric = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    // critter first (needed soonest), then the heavier Engineering pair.
+    const id1 = ric(() => prefetch('assets/critter.glb'), { timeout: 1500 });
+    const id2 = ric(() => {
+      prefetch('assets/vulkan-frame.glb');
+      prefetch('assets/vulkan-shells.glb');
+    }, { timeout: 3000 });
+    return () => {
+      cancelled = true;
+      if (window.cancelIdleCallback) { cancelIdleCallback(id1); cancelIdleCallback(id2); }
+    };
   }, []);
 
   return (
