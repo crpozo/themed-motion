@@ -160,11 +160,16 @@ function Banner() {
   return (
     <section className="banner" id="top">
       <img className="banner-fallback" src="assets/octopus-hero.png" alt="" aria-hidden="true" />
-      <iframe
-        src="https://www.youtube-nocookie.com/embed/Xd1TWkdMRRs?autoplay=1&mute=1&loop=1&playlist=Xd1TWkdMRRs&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0"
-        title="ThemedMotion reel"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
+      {/* Self-hosted reel — native muted autoplay loop, zero player chrome. */}
+      <video
+        className="banner-video"
+        src="assets/banner-reel.mp4"
+        poster="assets/banner-reel-poster.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
         tabIndex={-1}
         aria-hidden="true"
       />
