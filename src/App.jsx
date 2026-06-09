@@ -239,7 +239,7 @@ function Banner() {
         aria-hidden="true"
       />
       <div className="copy">
-        <div className="banner-kicker">Animatronics · Animated figures · Show action</div>
+        <div className="banner-kicker">Animatronics, animated figures and show action equipment</div>
         <h1>Quality motion for<br /><em>powerful stories.</em></h1>
       </div>
       <div className="banner-meta">Eindhoven, NL · Est. P&amp;P Projects</div>
