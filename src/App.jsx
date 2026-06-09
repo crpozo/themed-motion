@@ -898,6 +898,30 @@ function Home() {
     const timers = [setTimeout(scroll, 250), setTimeout(scroll, 700)];
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  // Warm the heavy below-the-fold 3D models in the background as soon as the
+  // visitor starts scrolling. Each is several MB + Draco decode and is set to
+  // load lazily, so without this they only begin downloading once you reach
+  // their section — and you watch them load. Prefetching during the time spent
+  // reading sections 01–02 means they're cached (near-instant) on arrival, with
+  // no cost to initial page load (low-priority, and only after engagement).
+  useEffect(() => {
+    let done = false;
+    const warm = () => {
+      if (done) return;
+      done = true;
+      ['assets/critter.glb', 'assets/vulkan-frame.glb', 'assets/vulkan-shells.glb'].forEach((href) => {
+        if (document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
+        const l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = href;
+        document.head.appendChild(l);
+      });
+    };
+    window.addEventListener('scroll', warm, { passive: true, once: true });
+    return () => window.removeEventListener('scroll', warm);
+  }, []);
+
   return (
     <>
       <Banner />
