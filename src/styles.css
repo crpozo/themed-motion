@@ -2189,9 +2189,15 @@ html.route-projects { scroll-snap-type: none; }
 @media (max-width: 760px) {
   .contact .peek-mormel { width: 152px; top: 75px; right: -6px; }
   .contact .peek-mormel .speech { display: none; }
+  /* The creature sits fully on-card here — reserve its column so the title
+     and subtitle wrap clear instead of running underneath it. */
+  .contact form .form-title,
+  .contact form .form-sub { padding-right: 150px; }
 }
 @media (max-width: 430px) {
   .contact .peek-mormel { width: 128px; top: 80px; right: -4px; }
+  .contact form .form-title,
+  .contact form .form-sub { padding-right: 124px; }
 }
 
 /* ===== Vertical section slider (right edge) ===== */
