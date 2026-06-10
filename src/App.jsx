@@ -496,7 +496,7 @@ function DesignVisual() {
           interaction-prompt="none"
           disable-zoom
           touch-action="pan-y"
-          loading="lazy"
+          loading="eager"
           environment-image="neutral"
           shadow-intensity="0.8"
           shadow-softness="0.9"
@@ -639,7 +639,7 @@ function VulkanStage() {
           interaction-prompt="none"
           camera-target={TARGET}
           camera-orbit={ORBIT}
-          loading="lazy"
+          loading="eager"
           environment-image="neutral"
           shadow-intensity="0.35"
           shadow-softness="1"
@@ -656,7 +656,7 @@ function VulkanStage() {
           interaction-prompt="none"
           camera-target={TARGET}
           camera-orbit={ORBIT}
-          loading="lazy"
+          loading="eager"
           environment-image="neutral"
           shadow-intensity="0.35"
           shadow-softness="1"
@@ -899,34 +899,11 @@ function Home() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Warm the heavy below-the-fold 3D models in the background once the browser
-  // is idle after first paint. Each is several MB + Draco decode and loads
-  // lazily, so without this they only begin downloading on scroll-into-view —
-  // and you watch them load. Starting on idle (rather than on scroll) gives the
-  // critter — which sits in section 01, reached almost immediately — a real
-  // head start during the time spent on the hero. Lowest network priority, so
-  // it yields to the hero video and never delays initial paint.
-  useEffect(() => {
-    let cancelled = false;
-    const prefetch = (href) => {
-      if (cancelled || document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
-      const l = document.createElement('link');
-      l.rel = 'prefetch';
-      l.href = href;
-      document.head.appendChild(l);
-    };
-    const ric = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-    // critter first (needed soonest), then the heavier Engineering pair.
-    const id1 = ric(() => prefetch('assets/critter.glb'), { timeout: 1500 });
-    const id2 = ric(() => {
-      prefetch('assets/vulkan-frame.glb');
-      prefetch('assets/vulkan-shells.glb');
-    }, { timeout: 3000 });
-    return () => {
-      cancelled = true;
-      if (window.cancelIdleCallback) { cancelIdleCallback(id1); cancelIdleCallback(id2); }
-    };
-  }, []);
+  // The heavy models (critter, Vulkan pair) use loading="eager": they download
+  // AND Draco-decode at page load, during the hero dwell, so they render the
+  // instant their section scrolls into view. With loading="lazy" model-viewer
+  // defers even parsing until visibility, which showed as a ~2s blank on first
+  // scroll despite the file being prefetched.
 
   return (
     <>
