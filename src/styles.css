@@ -1270,16 +1270,8 @@ footer {
 .vulkan-stage {
   position: relative; width: 100%; height: 100%;
   display: flex; flex-direction: column;
-  background:
-    radial-gradient(120% 90% at 50% 36%, #ffffff 0%, var(--bg) 55%, #ededed 100%);
+  background: var(--bg-2); /* flat light gray, same as the Design-section models */
   overflow: hidden;
-}
-.vulkan-stage::before {                 /* blueprint grid, same language as Engineering */
-  content: ""; position: absolute; inset: 0;
-  background-image:
-    linear-gradient(var(--ink-faint) 1px, transparent 1px),
-    linear-gradient(90deg, var(--ink-faint) 1px, transparent 1px);
-  background-size: 32px 32px; opacity: 0.28; pointer-events: none;
 }
 .vulkan-models { position: relative; flex: 1 1 auto; min-height: 0; }
 .vulkan-mv {
