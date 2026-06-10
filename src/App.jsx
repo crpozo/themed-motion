@@ -533,8 +533,9 @@ function ControlVisual() {
           shadow-intensity="0.9"
           shadow-softness="0.85"
           exposure="1.05"
-          camera-orbit="22deg 75deg 1.8m"
+          camera-orbit="22deg 75deg 1.9m"
           camera-target="1.12m 0.13m 0.41m"
+          field-of-view="30deg"
         ></model-viewer>
         <div className="mv-label">Control box</div>
       </div>
