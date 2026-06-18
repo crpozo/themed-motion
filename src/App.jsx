@@ -146,6 +146,9 @@ function Nav({ route }) {
           <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
             Work
           </a>
+          <a href="#/history" className={'nav-projects' + (route === '#/history' ? ' is-active' : '')}>
+            History
+          </a>
           <a className="nav-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
           <button
             type="button"
@@ -176,6 +179,10 @@ function Nav({ route }) {
               <span className="idx">↗</span>
               Work
             </a>
+            <a className="mm-link" href="#/history" onClick={() => setMenuOpen(false)}>
+              <span className="idx">↗</span>
+              History
+            </a>
           </div>
           <div className="mm-foot">
             <a className="mm-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
@@ -195,7 +202,7 @@ function SideNav({ route }) {
   const items = [{ id: 'top', label: 'Intro' }, ...SECTIONS, { id: 'contact', label: 'Contact' }];
   const active = useActive(items.map((i) => i.id));
   const scrolled = useScrolled(0.5);
-  if (route === '#/projects') return null;
+  if (route.startsWith('#/')) return null;
   const go = (e, id) => {
     e.preventDefault();
     scrollToSectionEl(document.getElementById(id));
@@ -244,7 +251,11 @@ function Banner() {
       </div>
       <div className="banner-meta">Eindhoven, NL · Est. P&amp;P Projects</div>
       <div className="scroll-cue" aria-hidden="true">
+        <span className="scroll-word">Scroll</span>
         <span className="line"></span>
+        <svg className="scroll-chevron" viewBox="0 0 24 24" width="26" height="26">
+          <polyline points="5 8 12 15 19 8" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
     </section>
   );
@@ -470,45 +481,38 @@ function UkkieStage() {
   }, []);
   return (
     <div className="ukkie-stage" ref={ref}>
+      {/* The concept sketch draws in and fills with colour, then cross-fades in
+          place into the live, rigged 3D model — sketch → model in one frame. */}
       <div className="ukkie-svg" dangerouslySetInnerHTML={{ __html: ukkieModelSvg }} />
+      <model-viewer
+        className="ukkie-model"
+        src="assets/critter.glb"
+        alt="Critter — rigged, animated 3D model"
+        autoplay
+        animation-name="ArmatureAction"
+        camera-controls
+        interaction-prompt="none"
+        disable-zoom
+        touch-action="pan-y"
+        loading="eager"
+        environment-image="neutral"
+        shadow-intensity="0.8"
+        shadow-softness="0.9"
+        exposure="1.05"
+        camera-orbit="40deg 74deg auto"
+        camera-target="auto auto auto"
+      ></model-viewer>
       <div className="ukkie-floor" aria-hidden="true"></div>
       <div className="ukkie-tag">UKKIE · SKETCH → MODEL</div>
+      <div className="ukkie-hint" aria-hidden="true">Drag to rotate</div>
     </div>
   );
 }
 
-// Design-section visual: the concept sketch (left) next to the rigged, animated
-// 3D critter (right) — idea and result side by side.
+// Design-section visual: the concept sketch morphs into the rigged 3D critter —
+// one stage, sketch then model, the idea becoming the result.
 function DesignVisual() {
-  return (
-    <div className="design-duo">
-      <div className="design-col">
-        <UkkieStage />
-      </div>
-      <div className="design-col">
-        <model-viewer
-          className="design-mv"
-          src="assets/critter.glb"
-          alt="Critter — rigged, animated 3D model"
-          autoplay
-          animation-name="ArmatureAction"
-          camera-controls
-          interaction-prompt="none"
-          disable-zoom
-          touch-action="pan-y"
-          loading="eager"
-          environment-image="neutral"
-          shadow-intensity="0.8"
-          shadow-softness="0.9"
-          exposure="1.05"
-          camera-orbit="40deg 74deg auto"
-          camera-target="auto auto auto"
-        ></model-viewer>
-        <div className="mv-label">Rigged 3D model</div>
-        <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
-      </div>
-    </div>
-  );
+  return <UkkieStage />;
 }
 
 // Control-section visual: the real CritterControl hardware as 3D models
@@ -581,7 +585,10 @@ function VulkanStage() {
   const TARGET = '6.585m 119.8m -3.3m';
   const ORBIT = '-78deg 80deg 560m';
 
-  // Lock the structure's animation time to the body's, every frame.
+  // Every frame: keep the structure locked to the body — both its animation
+  // time AND its camera. The body (shells) is the interactive one (camera-
+  // controls); we mirror its live orbit/target onto the fixed structure so the
+  // skeleton stays perfectly under the body no matter how the visitor rotates.
   useEffect(() => {
     let raf;
     const sync = () => {
@@ -589,6 +596,12 @@ function VulkanStage() {
       if (s && f && s.loaded && f.loaded) {
         const st = s.currentTime || 0;
         if (Math.abs((f.currentTime || 0) - st) > 0.03) f.currentTime = st;
+        try {
+          const o = s.getCameraOrbit();
+          f.cameraOrbit = `${o.theta}rad ${o.phi}rad ${o.radius}m`;
+          const t = s.getCameraTarget();
+          f.cameraTarget = `${t.x}m ${t.y}m ${t.z}m`;
+        } catch (_) { /* methods unavailable until fully loaded */ }
       }
       raf = requestAnimationFrame(sync);
     };
@@ -655,6 +668,9 @@ function VulkanStage() {
           autoplay
           animation-name="ArmatureAction"
           interaction-prompt="none"
+          camera-controls
+          disable-zoom
+          touch-action="pan-y"
           camera-target={TARGET}
           camera-orbit={ORBIT}
           loading="eager"
@@ -679,6 +695,7 @@ function VulkanStage() {
         <span className="vulkan-end">Body</span>
       </div>
       <div className="rotate3d-tag">VULKAN SC11</div>
+      <div className="vulkan-hint" aria-hidden="true">Drag to rotate</div>
     </div>
   );
 }
@@ -686,23 +703,55 @@ function VulkanStage() {
 // Animation-section visual: an artsy, abstract representation of motion curves on
 // a timeline (we can't show the real CritterControl software for IP reasons).
 function CurvesVisual() {
+  const ref = useRef(null);
+  // Replay the entrance (curves fly in from off-screen + draw on) each time the
+  // slide comes back into view, so it never reads as a static image.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          el.classList.remove('is-visible');     // arm: reset to off-screen state
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() =>
+            requestAnimationFrame(() => el.classList.add('is-visible')),
+          );
+        } else {
+          cancelAnimationFrame(raf);
+          el.classList.remove('is-visible');
+        }
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
   return (
-    <div className="curves-stage">
+    <div className="curves-stage" ref={ref}>
       <svg className="curves-svg" viewBox="0 0 600 440" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <g className="curves-grid">
           {[80, 160, 240, 320].map((y) => <line key={y} x1="40" y1={y} x2="560" y2={y} />)}
           {[120, 240, 360, 480].map((x) => <line key={x} x1={x} y1="50" x2={x} y2="360" className="v" />)}
         </g>
-        <path className="curve c1" d="M40 250 C 150 110, 250 300, 350 180 S 520 120, 560 220" />
-        <path className="curve c2" d="M40 180 C 140 240, 240 130, 340 250 S 500 280, 560 170" />
-        <g className="curve-keys">
-          {[[40,250],[180,150],[350,180],[480,150],[560,220]].map(([x,y],i)=>(
-            <rect key={i} x={x-4} y={y-4} width="8" height="8" transform={`rotate(45 ${x} ${y})`} />
-          ))}
+        {/* Curves sit behind the keyframe diamonds; each flies in staggered. */}
+        <g className="curves-paths">
+          <path className="curve c1" style={{ '--d': '0s' }} d="M40 250 C 150 110, 250 300, 350 180 S 520 120, 560 220" />
+          <path className="curve c2" style={{ '--d': '0.12s' }} d="M40 180 C 140 240, 240 130, 340 250 S 500 280, 560 170" />
+          <path className="curve c3" style={{ '--d': '0.24s' }} d="M40 320 C 130 380, 280 200, 380 310 S 520 280, 560 350" />
+          <path className="curve c4" style={{ '--d': '0.36s' }} d="M40 120 C 160 80, 240 320, 360 140 S 500 100, 560 200" />
+          <path className="curve c5" style={{ '--d': '0.48s' }} d="M40 200 C 145 160, 250 340, 350 220 S 510 240, 560 280" />
         </g>
         <line className="curves-playhead" x1="0" y1="44" x2="0" y2="366" />
         <g className="curves-ruler">
           {[0,1,2,3,4,5].map((s)=>(<text key={s} x={40 + s*104} y="392">0{s}s</text>))}
+        </g>
+        {/* Keyframe diamonds last → always on top of the curves. */}
+        <g className="curve-keys">
+          {[[40,250],[180,150],[350,180],[480,150],[560,220]].map(([x,y],i)=>(
+            <rect key={i} x={x-5} y={y-5} width="10" height="10" style={{ '--d': `${0.6 + i * 0.08}s` }} />
+          ))}
         </g>
       </svg>
       <div className="rotate3d-tag">CRITTERCONTROL · ANIMATION TOOL</div>
@@ -721,7 +770,7 @@ function FinishingSection({ beats }) {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing.mp4');
+          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing-boomerang.mp4');
           v.play().catch(() => {});
         } else {
           v.pause();
@@ -1046,14 +1095,7 @@ function Projects() {
         <div className="portfolio-head-inner reveal">
           <div className="kicker">Selected work · 2016—2026</div>
           <div className="work-title-wrap">
-            <svg className="work-bolt" viewBox="0 0 100 160" aria-hidden="true">
-              <polygon points="62,0 18,86 46,86 30,160 84,62 54,62" />
-            </svg>
-            <svg className="work-sparks" viewBox="0 0 60 40" aria-hidden="true">
-              <path d="M8 32 L20 14" />
-              <path d="M28 36 L34 8" />
-              <path d="M46 34 L56 18" />
-            </svg>
+            <img className="work-mark" src="assets/work-mark.png" alt="" aria-hidden="true" />
             <h1>Work<span className="dot">.</span></h1>
             <div className="work-side">An animatronics studio</div>
           </div>
@@ -1074,22 +1116,20 @@ function Projects() {
       <section className="portfolio">
         <div className="portfolio-grid">
           {PROJECTS.map((p, i) => (
-            <a
+            <figure
               key={p.img}
               className={'proj-tile reveal' + (p.card ? ' proj-card' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
-              href="#contact"
-              onClick={scrollToContact}
               data-index={String(i + 1).padStart(2, '0')}
               aria-label={`${p.name} — ${p.cat}`}
             >
               <div className="proj-media">
                 <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
               </div>
-              <div className="proj-meta">
+              <figcaption className="proj-meta">
                 <span className="proj-cat">{p.cat}</span>
                 <span className="proj-name">{p.name}</span>
-              </div>
-            </a>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </section>
@@ -1101,19 +1141,107 @@ function Projects() {
   );
 }
 
+// History page — the studio's story in text + photos. Copy and images below are
+// placeholders for the client to replace with their real history.
+const HISTORY_ROWS = [
+  {
+    year: '2016',
+    h: 'Where it started',
+    p: 'ThemedMotion began on the workshop floor of P&P Projects, building its first characters by hand. From the very first figure, the goal was simple: motion that tells a story, engineered to perform night after night.',
+    img: 'octopus-hero.png',
+  },
+  {
+    year: '2018–2020',
+    h: 'From figures to shows',
+    p: 'As projects grew, so did the studio — full-body show figures, integrated drive and wiring, and in-house kinematic analysis. Each build pushed what an animatronic character could do on a live show floor.',
+    img: 'joey-front.png',
+  },
+  {
+    year: '2021–2023',
+    h: 'Control, end to end',
+    p: 'We brought control in-house with CritterControl — our own hardware and tooling to drive, monitor and fine-tune characters in real-world conditions, so the performance stays exactly as intended.',
+    img: 'cc-rack-open.png',
+  },
+  {
+    year: 'Today',
+    h: 'Design → build → move',
+    p: 'Today the studio runs the whole arc — concept, 3D design, engineering, fabrication and show-action — for theme parks, museums and brand experiences around the world.',
+    img: 'vulkan-concept.png',
+  },
+];
+const HISTORY_GALLERY = ['peek-animatronic.png', 'vulkan-skeleton.png', 'mech-analysis-joint.png', 'mw-routing.png'];
+
+function History() {
+  useReveal();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  return (
+    <>
+      <header className="portfolio-head">
+        <div className="portfolio-head-inner reveal">
+          <div className="kicker">Our story · Est. P&amp;P Projects</div>
+          <div className="work-title-wrap">
+            <h1>History<span className="dot">.</span></h1>
+            <div className="work-side">How we got here</div>
+          </div>
+          <p className="head-sub">
+            A short look at how ThemedMotion grew from a single hand-built
+            character into a studio that designs, engineers and brings whole
+            casts of figures to life.
+          </p>
+        </div>
+      </header>
+
+      <section className="history">
+        <div className="history-inner">
+          {HISTORY_ROWS.map((r, i) => (
+            <div key={r.year} className={'history-row reveal' + (i % 2 ? ' reverse' : '')}>
+              <div className="history-text">
+                <span className="history-year">{r.year}</span>
+                <h2>{r.h}</h2>
+                <p>{r.p}</p>
+              </div>
+              <div className="history-figure">
+                <img src={`assets/${r.img}`} alt="" loading="lazy" />
+              </div>
+            </div>
+          ))}
+
+          <div className="history-gallery reveal">
+            {HISTORY_GALLERY.map((img) => (
+              <div key={img} className="history-gallery-item">
+                <img src={`assets/${img}`} alt="" loading="lazy" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Contact />
+      <SiteFooter />
+    </>
+  );
+}
+
 export default function App() {
   const route = useHashRoute();
   const onProjects = route === '#/projects';
-  // The Work/Projects page is a normal long page — never a snap deck.
+  const onHistory = route === '#/history';
+  // The Work and History pages are normal long pages — never snap decks.
   useEffect(() => {
     document.documentElement.classList.toggle('route-projects', onProjects);
-    return () => document.documentElement.classList.remove('route-projects');
-  }, [onProjects]);
+    document.documentElement.classList.toggle('route-history', onHistory);
+    return () => {
+      document.documentElement.classList.remove('route-projects');
+      document.documentElement.classList.remove('route-history');
+    };
+  }, [onProjects, onHistory]);
   return (
     <>
       <Nav route={route} />
       <SideNav route={route} />
-      {onProjects ? <Projects /> : <Home />}
+      {onProjects ? <Projects /> : onHistory ? <History /> : <Home />}
     </>
   );
 }
