@@ -369,6 +369,33 @@ function AnalysisVisual() {
   );
 }
 
+// Muted, seamless-looping video that only loads/plays near the viewport.
+// Source clips are pre-trimmed so the last frame isn't a duplicate of the
+// first — native loop runs continuously with no jump.
+function LoopVideo({ src, poster, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          if (!v.getAttribute('src')) v.setAttribute('src', src);
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      { rootMargin: '400px 0px' },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, [src]);
+  return (
+    <video ref={ref} className={className} muted loop playsInline preload="none" poster={poster} aria-hidden="true" />
+  );
+}
+
 function CCSketchBoard() {
   return (
     <div className="cc-board">
@@ -405,7 +432,7 @@ function MotorWiringBoard() {
       <div className="cc-board-grid-bg" aria-hidden="true"></div>
       <div className="mw-cells">
         <div className="cc-cell mw-cell-hero">
-          <img src="assets/mw-routing.png" alt="Drive routing study with arrows" />
+          <LoopVideo src="assets/mw-routing-anim.mp4" poster="assets/mw-routing-anim-poster.jpg" />
           <div className="cc-cell-tag">Routing study · MW-A</div>
         </div>
         <div className="cc-cell mw-cell-detail">
@@ -561,24 +588,7 @@ function ControlVisual() {
   return (
     <div className="mv-stage mv-duo">
       <div className="mv-item">
-        <model-viewer
-          className="mv"
-          src="assets/control-box.glb"
-          alt="CritterControl control box — 3D"
-          orientation="0deg -90deg 0deg"
-          camera-controls
-          interaction-prompt="none"
-          disable-zoom
-          touch-action="pan-y"
-          loading="lazy"
-          environment-image="neutral"
-          shadow-intensity="0.9"
-          shadow-softness="0.85"
-          exposure="1.05"
-          camera-orbit="22deg 75deg 1.9m"
-          camera-target="1.12m 0.13m 0.41m"
-          field-of-view="30deg"
-        ></model-viewer>
+        <LoopVideo className="mv-video" src="assets/control-box.mp4" poster="assets/control-box-poster.jpg" />
         <div className="mv-label">Control box</div>
       </div>
       <div className="mv-item">
