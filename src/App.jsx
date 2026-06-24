@@ -750,10 +750,40 @@ function VulkanStage() {
 
 // Animation-section visual: an artsy, abstract representation of motion curves on
 // a timeline (we can't show the real CritterControl software for IP reasons).
+// Smooth cubic path THROUGH the given points (Catmull-Rom → bezier) so every
+// point lies exactly on the line — that's where the keyframe diamonds sit.
+function smoothPath(pts) {
+  if (pts.length < 2) return '';
+  const d = ['M ' + pts[0][0] + ' ' + pts[0][1]];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d.push(`C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0]} ${p2[1]}`);
+  }
+  return d.join(' ');
+}
+
+const CURVE_XS = [40, 144, 248, 352, 456, 560];
+// Vibrant animation-editor track colours, readable on white.
+const CURVE_DATA = [
+  { color: '#06b6d4', ys: [300, 110, 280, 120, 250, 130] }, // cyan
+  { color: '#e0218a', ys: [170, 320, 120, 300, 140, 290] }, // magenta
+  { color: '#e8920c', ys: [250, 90, 260, 140, 300, 170] },  // amber
+  { color: '#16a34a', ys: [120, 250, 110, 280, 150, 240] }, // green
+  { color: '#ef4444', ys: [330, 190, 320, 100, 270, 90] },  // red
+].map((c) => ({ ...c, points: CURVE_XS.map((x, i) => [x, c.ys[i]]) }));
+const CURVE_DRAW = 2.2;      // seconds for one curve to draw on
+const CURVE_STAGGER = 0.16;  // start offset between curves
+
 function CurvesVisual() {
   const ref = useRef(null);
-  // Replay the entrance (curves fly in from off-screen + draw on) each time the
-  // slide comes back into view, so it never reads as a static image.
+  // Replay the "draw itself" build each time the slide returns into view.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -761,7 +791,7 @@ function CurvesVisual() {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          el.classList.remove('is-visible');     // arm: reset to off-screen state
+          el.classList.remove('is-visible');     // arm: reset to undrawn
           cancelAnimationFrame(raf);
           raf = requestAnimationFrame(() =>
             requestAnimationFrame(() => el.classList.add('is-visible')),
@@ -783,23 +813,26 @@ function CurvesVisual() {
           {[80, 160, 240, 320].map((y) => <line key={y} x1="40" y1={y} x2="560" y2={y} />)}
           {[120, 240, 360, 480].map((x) => <line key={x} x1={x} y1="50" x2={x} y2="360" className="v" />)}
         </g>
-        {/* Curves sit behind the keyframe diamonds; each flies in staggered. */}
-        <g className="curves-paths">
-          <path className="curve c1" style={{ '--d': '0s' }} d="M40 250 C 150 110, 250 300, 350 180 S 520 120, 560 220" />
-          <path className="curve c2" style={{ '--d': '0.12s' }} d="M40 180 C 140 240, 240 130, 340 250 S 500 280, 560 170" />
-          <path className="curve c3" style={{ '--d': '0.24s' }} d="M40 320 C 130 380, 280 200, 380 310 S 520 280, 560 350" />
-          <path className="curve c4" style={{ '--d': '0.36s' }} d="M40 120 C 160 80, 240 320, 360 140 S 500 100, 560 200" />
-          <path className="curve c5" style={{ '--d': '0.48s' }} d="M40 200 C 145 160, 250 340, 350 220 S 510 240, 560 280" />
-        </g>
+        {/* Each track draws itself on, staggered. */}
+        {CURVE_DATA.map((c, ci) => (
+          <path
+            key={ci}
+            className="curve"
+            d={smoothPath(c.points)}
+            style={{ stroke: c.color, '--d': `${(ci * CURVE_STAGGER).toFixed(2)}s` }}
+          />
+        ))}
         <line className="curves-playhead" x1="0" y1="44" x2="0" y2="366" />
         <g className="curves-ruler">
           {[0,1,2,3,4,5].map((s)=>(<text key={s} x={40 + s*104} y="392">0{s}s</text>))}
         </g>
-        {/* Keyframe diamonds last → always on top of the curves. */}
+        {/* Diamonds render last (always on top of the curves) and pop as the
+            line draws past each one — every diamond sits exactly on a curve. */}
         <g className="curve-keys">
-          {[[40,250],[180,150],[350,180],[480,150],[560,220]].map(([x,y],i)=>(
-            <rect key={i} x={x-5} y={y-5} width="10" height="10" style={{ '--d': `${0.6 + i * 0.08}s` }} />
-          ))}
+          {CURVE_DATA.flatMap((c, ci) => c.points.map(([x, y], ai) => {
+            const kd = ci * CURVE_STAGGER + (ai / (c.points.length - 1)) * CURVE_DRAW + 0.05;
+            return <rect key={`${ci}-${ai}`} x={x - 5} y={y - 5} width="10" height="10" style={{ '--kd': `${kd.toFixed(2)}s` }} />;
+          }))}
         </g>
       </svg>
       <div className="rotate3d-tag">CRITTERCONTROL · ANIMATION TOOL</div>
@@ -818,7 +851,7 @@ function FinishingSection({ beats }) {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing-boomerang.mp4');
+          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing-v2.mp4');
           v.play().catch(() => {});
         } else {
           v.pause();
@@ -838,7 +871,7 @@ function FinishingSection({ beats }) {
         loop
         playsInline
         preload="none"
-        poster="assets/finishing-poster.jpg"
+        poster="assets/finishing-v2-poster.jpg"
         aria-hidden="true"
       />
       <div className="finishing-scrim" aria-hidden="true"></div>

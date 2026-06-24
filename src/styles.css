@@ -2158,15 +2158,7 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   .ukkie-stage.is-active .ukkie-svg svg { animation: none; }
 }
 
-/* ---- Animation curves visual ----
-   Placeholder peach palette — client is sending exact tones; swap these vars. */
-:root {
-  --peach-1: #FF7A2F;   /* main */
-  --peach-2: #FF9E6B;
-  --peach-3: #F2622C;
-  --peach-4: #FFB991;
-  --peach-5: #E85A22;
-}
+/* ---- Animation curves visual (graph editor) ---- */
 .curves-stage {
   position: relative; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -2177,44 +2169,30 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .curves-grid line { stroke: rgba(17,17,17,0.06); stroke-width: 1; }
 .curves-grid line.v { stroke: rgba(17,17,17,0.045); }
 
-/* Curves: armed off-screen (translated + undrawn); fly in + draw on when the
-   stage gains .is-visible, then breathe gently so it never feels frozen. */
+/* Each curve "draws itself" in place (no slide) — stroke-dashoffset reveal,
+   staggered per track, replayed whenever the slide returns into view. */
 .curve {
   fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 1400; stroke-dashoffset: 1400;
-  opacity: 0; transform: translateX(-160px);
+  stroke-dasharray: 1500; stroke-dashoffset: 1500; opacity: 0;
 }
-.curve.c1 { stroke: var(--peach-1); }
-.curve.c2 { stroke: var(--peach-2); }
-.curve.c3 { stroke: var(--peach-3); }
-.curve.c4 { stroke: var(--peach-4); }
-.curve.c5 { stroke: var(--peach-5); }
 .curves-stage.is-visible .curve {
-  animation:
-    curve-in 1.25s cubic-bezier(.18,.7,.2,1) var(--d, 0s) forwards,
-    curve-float 7s ease-in-out calc(var(--d, 0s) + 1.4s) infinite;
+  animation: curve-draw 2.2s cubic-bezier(.4,0,.2,1) var(--d, 0s) forwards;
 }
-@keyframes curve-in {
-  0%   { opacity: 0; transform: translateX(-160px); stroke-dashoffset: 1400; }
-  35%  { opacity: 1; }
-  100% { opacity: 1; transform: translateX(0); stroke-dashoffset: 0; }
-}
-@keyframes curve-float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-7px); }
+@keyframes curve-draw {
+  0%   { opacity: 1; stroke-dashoffset: 1500; }
+  100% { opacity: 1; stroke-dashoffset: 0; }
 }
 
-/* Keyframe diamonds — render last (always in front of the curves), pop in. */
-/* fill-box origin + CSS rotate keeps them diamonds while scaling in. */
+/* Keyframe diamonds sit exactly on a curve (anchor points), render last so
+   they're always on top, and pop in as the line draws past each one. */
 .curve-keys rect {
-  fill: var(--peach-1); opacity: 0;
+  fill: #2b2f38; opacity: 0;
   transform-box: fill-box; transform-origin: center;
   transform: rotate(45deg) scale(0);
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.18));
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
 }
-.curve-keys rect:nth-child(even) { fill: var(--peach-3); }
 .curves-stage.is-visible .curve-keys rect {
-  animation: key-pop 0.5s cubic-bezier(.34,1.56,.64,1) var(--d, 0.6s) forwards;
+  animation: key-pop 0.42s cubic-bezier(.34,1.56,.64,1) var(--kd, 0s) forwards;
 }
 @keyframes key-pop { to { opacity: 1; transform: rotate(45deg) scale(1); } }
 
@@ -2223,7 +2201,7 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .curves-ruler text { fill: rgba(17,17,17,0.4); font-family: var(--mono); font-size: 11px; }
 .curves-stage .rotate3d-tag { color: rgba(17,17,17,0.45); }
 @media (prefers-reduced-motion: reduce) {
-  .curve { animation: none; opacity: 1; transform: none; stroke-dashoffset: 0; }
+  .curve { animation: none; opacity: 1; stroke-dashoffset: 0; }
   .curve-keys rect { animation: none; opacity: 1; transform: rotate(45deg) scale(1); }
   .curves-playhead { animation: none; }
 }
