@@ -1569,6 +1569,8 @@ footer {
 }
 .mw-cell-hero { transform: rotate(-0.6deg); }
 .mw-cell-detail { transform: rotate(1deg); }
+/* The MW-A routing video fills the whole cell (no letterbox margins). */
+.mw-cell-hero video { object-fit: cover; }
 @media (max-width: 900px) {
   .mw-board .mw-cells { inset: 16px 16px 48px 16px; gap: 10px; grid-template-columns: 1fr 1fr; }
 }
