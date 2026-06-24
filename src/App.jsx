@@ -342,12 +342,13 @@ function AnalysisVisual() {
       ([e]) => {
         if (e.isIntersecting) {
           if (!v.getAttribute('src')) v.setAttribute('src', 'assets/analysis-fea.mp4');
+          try { v.currentTime = 0; } catch (_) {}   // restart from the start on entry
           v.play().catch(() => {});
         } else {
           v.pause();
         }
       },
-      { rootMargin: '400px 0px' },
+      { threshold: 0.25 },
     );
     io.observe(v);
     return () => io.disconnect();
@@ -363,15 +364,16 @@ function AnalysisVisual() {
         preload="none"
         poster="assets/analysis-fea-poster.jpg"
         aria-hidden="true"
-        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px' }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
     </Bp>
   );
 }
 
-// Muted, seamless-looping video that only loads/plays near the viewport.
-// Source clips are pre-trimmed so the last frame isn't a duplicate of the
-// first — native loop runs continuously with no jump.
+// Muted, seamless-looping video. It restarts from the beginning each time its
+// section actually scrolls into view (not 400px early), so you always catch the
+// animation from the start instead of mid-way. Source clips are pre-trimmed so
+// the last frame isn't a duplicate of the first — the loop runs with no jump.
 function LoopVideo({ src, poster, className }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -381,12 +383,13 @@ function LoopVideo({ src, poster, className }) {
       ([e]) => {
         if (e.isIntersecting) {
           if (!v.getAttribute('src')) v.setAttribute('src', src);
+          try { v.currentTime = 0; } catch (_) {}
           v.play().catch(() => {});
         } else {
           v.pause();
         }
       },
-      { rootMargin: '400px 0px' },
+      { threshold: 0.25 },
     );
     io.observe(v);
     return () => io.disconnect();
@@ -1170,11 +1173,14 @@ function Projects() {
     <>
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
-          <div className="kicker">Selected work · 2016—2026</div>
           <div className="work-title-wrap">
-            <img className="work-mark" src="assets/work-mark.png" alt="" aria-hidden="true" />
+            {/* Brand mark (the logo's orange double-bar) — inline SVG so it stays
+                crisp at any size, no longer a pixelated bitmap. */}
+            <svg className="work-mark" viewBox="0 0 529 388" fill="none" aria-hidden="true">
+              <polygon points="165,67 520,9 421,129 134,132" />
+              <polygon points="62,268 297,266 247,329 8,379" />
+            </svg>
             <h1>Work<span className="dot">.</span></h1>
-            <div className="work-side">An animatronics studio</div>
           </div>
           <p className="head-sub">
             Characters, show figures and custom show-action mechanisms — designed,
@@ -1260,7 +1266,6 @@ function History() {
           <div className="kicker">Our story · Est. P&amp;P Projects</div>
           <div className="work-title-wrap">
             <h1>History<span className="dot">.</span></h1>
-            <div className="work-side">How we got here</div>
           </div>
           <p className="head-sub">
             A short look at how ThemedMotion grew from a single hand-built

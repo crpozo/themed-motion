@@ -1810,20 +1810,12 @@ footer {
    behind the WORK title — same identity as the logo, replacing the old bolt. */
 .work-mark {
   position: absolute; z-index: 0;
-  left: 50%; top: 48%;
-  width: clamp(220px, 34vw, 560px); height: auto;
+  left: 50%; top: 47%;
+  width: clamp(200px, 30vw, 500px); height: auto;
   transform: translate(-50%, -50%);
+  fill: none; stroke: var(--accent); stroke-width: 7; stroke-linejoin: round;
   opacity: 0.9;
   pointer-events: none;
-}
-.work-side {
-  position: absolute; z-index: 2;
-  right: clamp(-26px, -1.6vw, -10px); bottom: 30%;
-  font-family: var(--mono); font-size: clamp(9px, 0.9vw, 12px);
-  letter-spacing: 0.3em; text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  transform: rotate(-24deg); transform-origin: right bottom;
-  white-space: nowrap;
 }
 .portfolio-head .head-sub { position: relative; z-index: 2; }
 .portfolio-head .head-sub {
@@ -1831,6 +1823,8 @@ footer {
   color: rgba(255,255,255,0.6);
   max-width: 58ch; margin: 30px auto 0;
 }
+/* Work page: drop the intro paragraph clear of the big WORK title + brand mark. */
+html.route-projects .portfolio-head .head-sub { margin-top: clamp(40px, 6vw, 104px); }
 .portfolio-tags {
   display: flex; flex-wrap: wrap; gap: 8px;
   justify-content: center; margin-top: 26px;
