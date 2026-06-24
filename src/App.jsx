@@ -331,6 +331,44 @@ function Bp({ title, code, children }) {
   );
 }
 
+// Analysis-section visual: the real FEA stress-analysis animation, framed on the
+// blueprint board. Lazy-loaded/played only near the viewport to keep it light.
+function AnalysisVisual() {
+  const vref = useRef(null);
+  useEffect(() => {
+    const v = vref.current;
+    if (!v) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/analysis-fea.mp4');
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      { rootMargin: '400px 0px' },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <Bp title="Load case · ME-08" code="ANALYSIS · FEA">
+      <video
+        ref={vref}
+        className="bp-video"
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster="assets/analysis-fea-poster.jpg"
+        aria-hidden="true"
+        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px' }}
+      />
+    </Bp>
+  );
+}
+
 function CCSketchBoard() {
   return (
     <div className="cc-board">
@@ -1001,11 +1039,7 @@ function Home() {
           { h: 'Engineered for the real world.', p: <>Every figure faces different demands, so we apply mechanical analysis based on the specific requirements of each project — structural analysis, dynamic analysis, overhead load calculations, fatigue evaluation, wind loading, vibration, or environmental considerations. The goal is not to overengineer everything equally, but to apply the right validation where it matters for safety, reliability, and long-term performance.</> },
           { h: 'Verified beyond our workshop.', p: <>Safety and reliability are part of the engineering process from the very beginning. Alongside our internal analysis and validation workflows, we collaborate with specialized third-party reviewers when required, to independently assess structures, safety-critical systems, and installation conditions.</> },
         ]}
-        visual={
-          <Bp title="Load case · ME-08" code="ANALYSIS · FEA">
-            <img src="assets/mech-analysis-joint.png" alt="Mechanical analysis with load visualizations" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px' }} />
-          </Bp>
-        }
+        visual={<AnalysisVisual />}
       />
 
       {/* 04 · ACTUATORS */}
