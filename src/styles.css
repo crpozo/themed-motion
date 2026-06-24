@@ -2390,12 +2390,16 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   /* min-height 0 so the pair splits the stage 50/50 when stacked on phones. */
   position: relative; flex: 1 1 0; min-width: 0; min-height: 0;
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden;            /* clip the zoomed control-box video */
 }
 .mv-item + .mv-item { border-left: 1px solid var(--rule); }
 .mv-item .mv { width: 100%; height: 100%; }
-/* The control-box render fills its cell (its own studio backdrop becomes the
-   panel) — looping turntable video in place of the GLB. */
-.mv-item .mv-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* The control-box render is a looping turntable video in place of the GLB.
+   Scaled up so the cabinet fills the cell instead of floating in studio grey. */
+.mv-item .mv-video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transform: scale(1.55); transform-origin: center 44%;
+}
 .mv-label {
   position: absolute; bottom: 16px; left: 0; right: 0; text-align: center;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
