@@ -1558,22 +1558,13 @@ footer {
   .cc-board-sub { display: none; }
 }
 
-/* ---- Motor & Wiring board ---- */
-.mw-board .mw-cells {
-  position: absolute;
-  inset: 24px 24px 56px 24px;
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  grid-template-rows: 1fr;
-  gap: 14px;
+/* ---- Motor & Wiring: routing video full-bleed over the whole visual ---- */
+.mw-board .mw-fill {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
 }
-.mw-cell-hero { transform: rotate(-0.6deg); }
-.mw-cell-detail { transform: rotate(1deg); }
-/* The MW-A routing video fills the whole cell (no letterbox margins). */
-.mw-cell-hero video { object-fit: cover; }
-@media (max-width: 900px) {
-  .mw-board .mw-cells { inset: 16px 16px 48px 16px; gap: 10px; grid-template-columns: 1fr 1fr; }
-}
+.mw-tag { left: 18px; bottom: 16px; z-index: 2; }
 
 /* ---- Video poster (Section 8 click-to-play) ---- */
 .video-stage .video-poster {

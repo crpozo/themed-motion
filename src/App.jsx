@@ -429,24 +429,13 @@ function CCSketchBoard() {
   );
 }
 
+// Actuators-section visual: the routing-study video full-bleed (the old MW-B
+// joint-detail sketch is dropped — the video is the focus and fills the space).
 function MotorWiringBoard() {
   return (
     <div className="cc-board mw-board">
-      <div className="cc-board-grid-bg" aria-hidden="true"></div>
-      <div className="mw-cells">
-        <div className="cc-cell mw-cell-hero">
-          <LoopVideo src="assets/mw-routing-anim.mp4" poster="assets/mw-routing-anim-poster.jpg" />
-          <div className="cc-cell-tag">Routing study · MW-A</div>
-        </div>
-        <div className="cc-cell mw-cell-detail">
-          <img src="assets/mw-detail.png" alt="Joint detail with integrated cable run" />
-          <div className="cc-cell-tag">Joint detail · MW-B</div>
-        </div>
-      </div>
-      <div className="cc-board-meta">
-        <div className="cc-board-title">Drive · MW-04</div>
-        <div className="cc-board-sub">Integrated drive actuators · in-bone wiring</div>
-      </div>
+      <LoopVideo className="mw-fill" src="assets/mw-routing-anim.mp4" poster="assets/mw-routing-anim-poster.jpg" />
+      <div className="cc-cell-tag mw-tag">Routing study · MW-A</div>
     </div>
   );
 }
