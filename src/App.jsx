@@ -1010,10 +1010,11 @@ const MGE_DATA = MGE_CHANNELS.map((ch) => ({
   keys: [0, 1, 2, 3, 4, 5].map((s) => ({ x: mgeX(s), y: mgeY(mgeVal(ch, s)) })),
 }));
 
+// Non-interactive: the playhead sweeps and loops on its own, and each loop the
+// focus moves to the next channel — a self-running showcase, not a control.
 function MotionGraphEditor() {
-  const [sel, setSel] = useState('opacity');
-  const [time, setTime] = useState(1.2);
-  const [playing, setPlaying] = useState(true);
+  const [sel, setSel] = useState('posx');
+  const [time, setTime] = useState(0);
   const [visible, setVisible] = useState(true);
   const wrapRef = useRef(null);
   const lastRef = useRef(0);
@@ -1026,31 +1027,31 @@ function MotionGraphEditor() {
     return () => io.disconnect();
   }, []);
 
-  // Playhead sweep (~0.9 u/s), loops at 5s.
+  // Playhead sweep (~0.9 u/s); on each loop, focus the next channel.
   useEffect(() => {
-    if (!playing || !visible) { lastRef.current = 0; return; }
+    if (!visible) { lastRef.current = 0; return; }
     let raf;
     const step = (now) => {
       if (!lastRef.current) lastRef.current = now;
       const dt = Math.min(0.05, (now - lastRef.current) / 1000);
       lastRef.current = now;
-      setTime((t) => { const n = t + dt * 0.9; return n >= MGE_DUR ? n - MGE_DUR : n; });
+      setTime((t) => {
+        const n = t + dt * 0.9;
+        if (n >= MGE_DUR) {
+          setSel((cur) => MGE_CHANNELS[(MGE_CHANNELS.findIndex((c) => c.key === cur) + 1) % MGE_CHANNELS.length].key);
+          return n - MGE_DUR;
+        }
+        return n;
+      });
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [playing, visible]);
+  }, [visible]);
 
   const selCh = MGE_DATA.find((c) => c.key === sel);
   const px = mgeX(time);
   const py = mgeY(mgeVal(selCh, time));
-  const frame = Math.round((time / MGE_DUR) * (MGE_DUR * MGE_FPS));
-
-  const scrub = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    setPlaying(false); lastRef.current = 0; setTime(f * MGE_DUR);
-  };
 
   return (
     <div className="mge-wrap" ref={wrapRef}>
@@ -1062,20 +1063,12 @@ function MotionGraphEditor() {
             <div className="mge-sub">Value channels · 5.00s · 30 fps</div>
           </div>
           <div className="mge-head-r">
-            <div className="mge-readout">
-              <div className="mge-time">{time.toFixed(2).padStart(5, '0')}s</div>
-              <div className="mge-frames">{String(frame).padStart(3, '0')} / 150 f</div>
-            </div>
-            <button type="button" className="mge-play" onClick={() => { lastRef.current = 0; setPlaying((p) => !p); }} aria-label={playing ? 'Pause' : 'Play'}>
-              {playing
-                ? <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2" /><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" /></svg>
-                : <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.5 5 L19 12 L7.5 19 Z" /></svg>}
-            </button>
+            <div className="mge-time">{time.toFixed(2).padStart(5, '0')}s</div>
           </div>
         </div>
         <div className="mge-body">
           <div className="mge-yaxis">{[100, 75, 50, 25, 0].map((v) => <span key={v}>{v}</span>)}</div>
-          <svg className="mge-svg" viewBox="0 0 900 440" preserveAspectRatio="none" onPointerDown={scrub}>
+          <svg className="mge-svg" viewBox="0 0 900 440" preserveAspectRatio="none" aria-hidden="true">
             <g className="mge-grid">
               {[0, 25, 50, 75, 100].map((p) => { const y = mgeY(p / 100); return <line key={p} x1="0" y1={y} x2="900" y2={y} className={p === 50 ? 'mid' : ''} />; })}
               {[0, 1, 2, 3, 4, 5].map((s) => <line key={s} className="v" x1={mgeX(s)} y1="0" x2={mgeX(s)} y2="440" />)}
@@ -1095,11 +1088,11 @@ function MotionGraphEditor() {
         <div className="mge-taxis">{[0, 1, 2, 3, 4, 5].map((s) => <span key={s}>{String(s).padStart(2, '0')}s</span>)}</div>
         <div className="mge-legend">
           {MGE_DATA.map((ch) => (
-            <button key={ch.key} type="button" className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')} onClick={() => setSel(ch.key)} style={{ '--c': ch.color }}>
+            <div key={ch.key} className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')} style={{ '--c': ch.color }}>
               <span className="mge-leg-dot" />
               <span className="mge-leg-name">{ch.name}</span>
               <span className="mge-leg-val">{Math.round(mgeVal(ch, time) * 100)}%</span>
-            </button>
+            </div>
           ))}
         </div>
       </div>

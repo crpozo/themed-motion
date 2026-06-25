@@ -2217,24 +2217,15 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 }
 .mge-title { font-size: clamp(17px, 1.5vw, 21px); font-weight: 700; line-height: 1.1; }
 .mge-sub { font-size: 12px; color: #8a909c; margin-top: 3px; }
-.mge-head-r { display: flex; align-items: center; gap: clamp(10px, 1vw, 16px); }
-.mge-readout { text-align: right; }
-.mge-time { font-family: var(--mono); font-size: clamp(19px, 1.9vw, 28px); font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
-.mge-frames { font-family: var(--mono); font-size: 11px; color: #9aa0ab; margin-top: 5px; }
-.mge-play {
-  width: 42px; height: 42px; flex-shrink: 0; border: 0; border-radius: 12px; cursor: pointer;
-  background: #f2933a; display: grid; place-items: center;
-  box-shadow: 0 6px 16px -6px rgba(242,147,58,0.75); transition: transform .12s, background .15s;
-}
-.mge-play:hover { background: #e8842a; transform: translateY(-1px); }
-.mge-play svg { fill: #fff; }
-.mge-body { display: flex; gap: 12px; }
+.mge-head-r { display: flex; align-items: center; }
+.mge-time { font-family: var(--mono); font-size: clamp(22px, 2.1vw, 32px); font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: #1a1f29; }
+.mge-body { display: flex; gap: 14px; }
 .mge-yaxis {
   display: flex; flex-direction: column; justify-content: space-between;
   font-family: var(--mono); font-size: 11px; color: #aeb4be;
   padding: 12px 0; text-align: right; min-width: 24px;
 }
-.mge-svg { flex: 1 1 auto; width: 100%; aspect-ratio: 900 / 440; display: block; touch-action: none; cursor: crosshair; }
+.mge-svg { flex: 1 1 auto; width: 100%; aspect-ratio: 900 / 440; display: block; }
 .mge-grid line { stroke: #eaecef; stroke-width: 1; }
 .mge-grid line.v { stroke: #eef0f2; }
 .mge-grid line.mid { stroke: #c9cdd3; stroke-dasharray: 3 5; }
@@ -2257,19 +2248,23 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 }
 .mge-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 .mge-leg {
-  flex: 1 1 auto; display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  flex: 1 1 auto; display: inline-flex; align-items: center; gap: 10px;
   background: #fbfbfc; border: 1px solid #e6e8ec; border-radius: 10px;
-  padding: 9px 13px; font-family: inherit; color: #1a1f29;
-  transition: border-color .15s, background .15s, box-shadow .15s;
+  padding: 11px 15px; font-family: inherit; color: #1a1f29;
+  transition: background .3s, border-color .3s, box-shadow .3s;
 }
-.mge-leg:hover { border-color: #d3d7dd; }
 .mge-leg.is-sel { background: #1a1f29; border-color: #1a1f29; box-shadow: 0 0 0 1px var(--c); }
-.mge-leg-dot { width: 11px; height: 11px; background: var(--c); transform: rotate(45deg); border-radius: 2px; flex-shrink: 0; }
-.mge-leg-name { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.mge-leg-dot { width: 12px; height: 12px; background: var(--c); transform: rotate(45deg); border-radius: 2px; flex-shrink: 0; }
+.mge-leg-name { font-size: 14px; font-weight: 600; white-space: nowrap; }
 .mge-leg.is-sel .mge-leg-name { color: #fff; }
-.mge-leg-val { margin-left: auto; font-family: var(--mono); font-size: 12px; color: #9aa0ab; }
+.mge-leg-val { margin-left: auto; font-family: var(--mono); font-size: 13px; color: #9aa0ab; }
 .mge-leg.is-sel .mge-leg-val { color: var(--c); }
-@media (prefers-reduced-motion: reduce) { .mge-play { transition: none; } }
+
+/* Bigger on desktop: give the Animation visual column more room. */
+@media (min-width: 1101px) {
+  #animation { grid-template-columns: 0.7fr 1.3fr; }
+  #animation .mge-wrap { padding: clamp(10px, 1.4vw, 26px); }
+}
 
 /* ---- Figure finishing: full-bleed video + text ---- */
 .finishing {
