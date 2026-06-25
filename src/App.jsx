@@ -576,34 +576,13 @@ function DesignVisual() {
 // (converted from the supplied STEP CAD). Both pieces — the control box and the
 // FSCS module that lives inside it — are shown together, each independently
 // draggable. Auto radius lets model-viewer frame each model so neither clips.
+// Control-section visual: the control-box render full-bleed (the video is the
+// hero; the FSCS 3D model was dropped so the cabinet owns the whole space).
 function ControlVisual() {
   return (
-    <div className="mv-stage mv-duo">
-      <div className="mv-item">
-        <LoopVideo className="mv-video" src="assets/control-box.mp4" poster="assets/control-box-poster.jpg" />
-        <div className="mv-label">Control box</div>
-      </div>
-      <div className="mv-item">
-        <model-viewer
-          className="mv"
-          src="assets/fscs.glb"
-          alt="CritterControl FSCS module — 3D"
-          orientation="0deg 0deg 0deg"
-          camera-controls
-          interaction-prompt="none"
-          disable-zoom
-          touch-action="pan-y"
-          loading="lazy"
-          environment-image="neutral"
-          shadow-intensity="0.9"
-          shadow-softness="0.85"
-          exposure="1.05"
-          camera-orbit="22deg 75deg auto"
-          camera-target="auto auto auto"
-        ></model-viewer>
-        <div className="mv-label">FSCS module</div>
-      </div>
-      <div className="mv-hint" aria-hidden="true">Drag to rotate</div>
+    <div className="mv-stage mv-solo">
+      <LoopVideo className="mv-fill" src="assets/control-box.mp4" poster="assets/control-box-poster.jpg" />
+      <div className="mv-label mv-label-solo">Control box</div>
     </div>
   );
 }
@@ -1003,6 +982,131 @@ function SiteFooter() {
   );
 }
 
+// ---- Motion Graph Editor: interactive animation-curve editor (Animation §) ----
+const MGE_W = 900, MGE_DUR = 5, MGE_FPS = 30;
+const MGE_CHANNELS = [
+  { key: 'opacity',  name: 'Opacity',    color: 'oklch(0.63 0.20 28)',  freq: 1.6,  phase: 0 },
+  { key: 'scale',    name: 'Scale',      color: 'oklch(0.70 0.15 72)',  freq: 1.3,  phase: 2.1 },
+  { key: 'posx',     name: 'Position X', color: 'oklch(0.60 0.13 175)', freq: 1.85, phase: 4.0 },
+  { key: 'posy',     name: 'Position Y', color: 'oklch(0.55 0.16 256)', freq: 0.9,  phase: 1.0 },
+  { key: 'rotation', name: 'Rotation',   color: 'oklch(0.58 0.19 350)', freq: 2.15, phase: 5.0 },
+];
+const mgeVal = (ch, t) => 0.5 + 0.42 * Math.sin((2 * Math.PI * ch.freq * t) / MGE_DUR + ch.phase);
+const mgeX = (t) => (t / MGE_DUR) * MGE_W;
+const mgeY = (v) => 22 + (1 - v) * 396;
+const mgePath = (ch) => {
+  const N = 260; let d = '';
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * MGE_DUR;
+    d += (i ? 'L' : 'M') + mgeX(t).toFixed(1) + ' ' + mgeY(mgeVal(ch, t)).toFixed(1) + ' ';
+  }
+  return d.trim();
+};
+// Curves are static — precompute paths, fills and keyframe points once.
+const MGE_DATA = MGE_CHANNELS.map((ch) => ({
+  ...ch,
+  d: mgePath(ch),
+  fill: mgePath(ch) + ` L${MGE_W} ${mgeY(0)} L0 ${mgeY(0)} Z`,
+  keys: [0, 1, 2, 3, 4, 5].map((s) => ({ x: mgeX(s), y: mgeY(mgeVal(ch, s)) })),
+}));
+
+function MotionGraphEditor() {
+  const [sel, setSel] = useState('opacity');
+  const [time, setTime] = useState(1.2);
+  const [playing, setPlaying] = useState(true);
+  const [visible, setVisible] = useState(true);
+  const wrapRef = useRef(null);
+  const lastRef = useRef(0);
+
+  // Pause the loop when the slide is off-screen.
+  useEffect(() => {
+    const el = wrapRef.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Playhead sweep (~0.9 u/s), loops at 5s.
+  useEffect(() => {
+    if (!playing || !visible) { lastRef.current = 0; return; }
+    let raf;
+    const step = (now) => {
+      if (!lastRef.current) lastRef.current = now;
+      const dt = Math.min(0.05, (now - lastRef.current) / 1000);
+      lastRef.current = now;
+      setTime((t) => { const n = t + dt * 0.9; return n >= MGE_DUR ? n - MGE_DUR : n; });
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, visible]);
+
+  const selCh = MGE_DATA.find((c) => c.key === sel);
+  const px = mgeX(time);
+  const py = mgeY(mgeVal(selCh, time));
+  const frame = Math.round((time / MGE_DUR) * (MGE_DUR * MGE_FPS));
+
+  const scrub = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    setPlaying(false); lastRef.current = 0; setTime(f * MGE_DUR);
+  };
+
+  return (
+    <div className="mge-wrap" ref={wrapRef}>
+      <div className="mge-card">
+        <div className="mge-head">
+          <div className="mge-head-l">
+            <span className="mge-chip">Animation</span>
+            <div className="mge-title">Graph Editor</div>
+            <div className="mge-sub">Value channels · 5.00s · 30 fps</div>
+          </div>
+          <div className="mge-head-r">
+            <div className="mge-readout">
+              <div className="mge-time">{time.toFixed(2).padStart(5, '0')}s</div>
+              <div className="mge-frames">{String(frame).padStart(3, '0')} / 150 f</div>
+            </div>
+            <button type="button" className="mge-play" onClick={() => { lastRef.current = 0; setPlaying((p) => !p); }} aria-label={playing ? 'Pause' : 'Play'}>
+              {playing
+                ? <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2" /><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" /></svg>
+                : <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.5 5 L19 12 L7.5 19 Z" /></svg>}
+            </button>
+          </div>
+        </div>
+        <div className="mge-body">
+          <div className="mge-yaxis">{[100, 75, 50, 25, 0].map((v) => <span key={v}>{v}</span>)}</div>
+          <svg className="mge-svg" viewBox="0 0 900 440" preserveAspectRatio="none" onPointerDown={scrub}>
+            <g className="mge-grid">
+              {[0, 25, 50, 75, 100].map((p) => { const y = mgeY(p / 100); return <line key={p} x1="0" y1={y} x2="900" y2={y} className={p === 50 ? 'mid' : ''} />; })}
+              {[0, 1, 2, 3, 4, 5].map((s) => <line key={s} className="v" x1={mgeX(s)} y1="0" x2={mgeX(s)} y2="440" />)}
+            </g>
+            <path className="mge-fill" d={selCh.fill} style={{ fill: selCh.color }} />
+            {MGE_DATA.map((ch) => (
+              <path key={ch.key} className={'mge-curve' + (ch.key === sel ? ' is-sel' : '')} d={ch.d} style={{ stroke: ch.color, color: ch.color }} />
+            ))}
+            {selCh.keys.map((k, i) => (
+              <rect key={i} className="mge-kf" x={k.x - 6} y={k.y - 6} width="12" height="12" style={{ stroke: selCh.color }} />
+            ))}
+            <line className="mge-ph" x1={px} y1="0" x2={px} y2={mgeY(0)} />
+            <circle className="mge-ph-top" cx={px} cy="22" r="5" />
+            <circle className="mge-ph-dot" cx={px} cy={py} r="6" style={{ fill: selCh.color }} />
+          </svg>
+        </div>
+        <div className="mge-taxis">{[0, 1, 2, 3, 4, 5].map((s) => <span key={s}>{String(s).padStart(2, '0')}s</span>)}</div>
+        <div className="mge-legend">
+          {MGE_DATA.map((ch) => (
+            <button key={ch.key} type="button" className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')} onClick={() => setSel(ch.key)} style={{ '--c': ch.color }}>
+              <span className="mge-leg-dot" />
+              <span className="mge-leg-name">{ch.name}</span>
+              <span className="mge-leg-val">{Math.round(mgeVal(ch, time) * 100)}%</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Home() {
   useReveal();
   // When arriving on the home page with a section fragment (e.g. coming back
@@ -1119,7 +1223,7 @@ function Home() {
           { h: 'Animation without limits.', p: <>Characters are animated using our <b>CritterControl Animation Tool</b>, a software environment designed specifically for animatronics. It lets us craft detailed performances with precise control over motion, timing, and synchronization — and supports hundreds of animations per character, so operators can even create their own.</> },
           { h: 'Control to the finest detail.', p: <>CritterControl lets us prepare performances with precise control over motion curves, keyframes, interpolation, timing, synchronization, triggers, and show sequencing. Using a real-time 3D workflow, we preview, refine, and adjust performances directly around the intended movement of the figure — before and during integration.</> },
         ]}
-        visual={<CurvesVisual />}
+        visual={<MotionGraphEditor />}
       />
 
       {/* 07 · FINISHING */}

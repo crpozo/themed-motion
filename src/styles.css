@@ -2191,6 +2191,86 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   .curves-playhead { animation: none; }
 }
 
+/* ---- Motion Graph Editor ---- */
+.mge-wrap {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: #f4f5f7; padding: clamp(14px, 2.2vw, 40px); overflow: hidden;
+}
+.mge-card {
+  width: 100%; max-width: 1016px;
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid #e6e8ec; border-radius: 16px;
+  box-shadow: 0 24px 60px -28px rgba(20,28,46,0.28), 0 2px 8px rgba(20,28,46,0.05);
+  padding: clamp(16px, 1.7vw, 26px);
+  font-family: var(--sans, system-ui, sans-serif); color: #1a1f29;
+}
+.mge-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding-bottom: 15px; border-bottom: 1px solid #eceef1; margin-bottom: 16px;
+}
+.mge-chip {
+  display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: #f2933a;
+  background: rgba(242,147,58,0.10); border: 1px solid rgba(242,147,58,0.35);
+  padding: 4px 9px; border-radius: 999px; margin-bottom: 10px;
+}
+.mge-title { font-size: clamp(17px, 1.5vw, 21px); font-weight: 700; line-height: 1.1; }
+.mge-sub { font-size: 12px; color: #8a909c; margin-top: 3px; }
+.mge-head-r { display: flex; align-items: center; gap: clamp(10px, 1vw, 16px); }
+.mge-readout { text-align: right; }
+.mge-time { font-family: var(--mono); font-size: clamp(19px, 1.9vw, 28px); font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
+.mge-frames { font-family: var(--mono); font-size: 11px; color: #9aa0ab; margin-top: 5px; }
+.mge-play {
+  width: 42px; height: 42px; flex-shrink: 0; border: 0; border-radius: 12px; cursor: pointer;
+  background: #f2933a; display: grid; place-items: center;
+  box-shadow: 0 6px 16px -6px rgba(242,147,58,0.75); transition: transform .12s, background .15s;
+}
+.mge-play:hover { background: #e8842a; transform: translateY(-1px); }
+.mge-play svg { fill: #fff; }
+.mge-body { display: flex; gap: 12px; }
+.mge-yaxis {
+  display: flex; flex-direction: column; justify-content: space-between;
+  font-family: var(--mono); font-size: 11px; color: #aeb4be;
+  padding: 12px 0; text-align: right; min-width: 24px;
+}
+.mge-svg { flex: 1 1 auto; width: 100%; aspect-ratio: 900 / 440; display: block; touch-action: none; cursor: crosshair; }
+.mge-grid line { stroke: #eaecef; stroke-width: 1; }
+.mge-grid line.v { stroke: #eef0f2; }
+.mge-grid line.mid { stroke: #c9cdd3; stroke-dasharray: 3 5; }
+.mge-fill { opacity: 0.09; transition: opacity .25s; }
+.mge-curve {
+  fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  stroke-opacity: 0.30; transition: stroke-opacity .25s, stroke-width .25s;
+}
+.mge-curve.is-sel {
+  stroke-opacity: 1; stroke-width: 3.5;
+  filter: drop-shadow(0 3px 7px color-mix(in oklab, currentColor 38%, transparent));
+}
+.mge-kf { fill: #fff; stroke-width: 2.5; transform-box: fill-box; transform-origin: center; transform: rotate(45deg); }
+.mge-ph { stroke: #f2933a; stroke-width: 1.6; }
+.mge-ph-top { fill: #f2933a; }
+.mge-ph-dot { stroke: #fff; stroke-width: 2; }
+.mge-taxis {
+  display: flex; justify-content: space-between; margin: 8px 0 0;
+  padding-left: 36px; font-family: var(--mono); font-size: 11px; color: #aeb4be;
+}
+.mge-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.mge-leg {
+  flex: 1 1 auto; display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  background: #fbfbfc; border: 1px solid #e6e8ec; border-radius: 10px;
+  padding: 9px 13px; font-family: inherit; color: #1a1f29;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.mge-leg:hover { border-color: #d3d7dd; }
+.mge-leg.is-sel { background: #1a1f29; border-color: #1a1f29; box-shadow: 0 0 0 1px var(--c); }
+.mge-leg-dot { width: 11px; height: 11px; background: var(--c); transform: rotate(45deg); border-radius: 2px; flex-shrink: 0; }
+.mge-leg-name { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.mge-leg.is-sel .mge-leg-name { color: #fff; }
+.mge-leg-val { margin-left: auto; font-family: var(--mono); font-size: 12px; color: #9aa0ab; }
+.mge-leg.is-sel .mge-leg-val { color: var(--c); }
+@media (prefers-reduced-motion: reduce) { .mge-play { transition: none; } }
+
 /* ---- Figure finishing: full-bleed video + text ---- */
 .finishing {
   position: relative; min-height: 100vh; display: flex; align-items: center;
@@ -2400,6 +2480,14 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   width: 100%; height: 100%; object-fit: cover; display: block;
   transform: scale(1.55); transform-origin: center 44%;
 }
+/* Control section: the control-box video alone, full-bleed over the whole
+   visual (FSCS dropped). Light zoom so the cabinet owns the frame. */
+.mv-fill {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transform: scale(1.3); transform-origin: center 44%;
+}
+.mv-label-solo { z-index: 2; }
 .mv-label {
   position: absolute; bottom: 16px; left: 0; right: 0; text-align: center;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
