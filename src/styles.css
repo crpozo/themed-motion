@@ -2218,7 +2218,7 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .mge-title { font-size: clamp(17px, 1.5vw, 21px); font-weight: 700; line-height: 1.1; }
 .mge-sub { font-size: 12px; color: #8a909c; margin-top: 3px; }
 .mge-head-r { display: flex; align-items: center; }
-.mge-time { font-family: var(--mono); font-size: clamp(22px, 2.1vw, 32px); font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: #1a1f29; }
+.mge-time { font-family: var(--mono); font-size: clamp(22px, 2.1vw, 32px); font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: #1a1f29; font-variant-numeric: tabular-nums; }
 .mge-body { display: flex; gap: 14px; }
 .mge-yaxis {
   display: flex; flex-direction: column; justify-content: space-between;
@@ -2246,9 +2246,9 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   display: flex; justify-content: space-between; margin: 8px 0 0;
   padding-left: 36px; font-family: var(--mono); font-size: 11px; color: #aeb4be;
 }
-.mge-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.mge-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 16px; }
 .mge-leg {
-  flex: 1 1 auto; display: inline-flex; align-items: center; gap: 10px;
+  flex: 0 1 auto; display: inline-flex; align-items: center; gap: 10px;
   background: #fbfbfc; border: 1px solid #e6e8ec; border-radius: 10px;
   padding: 11px 15px; font-family: inherit; color: #1a1f29;
   transition: background .3s, border-color .3s, box-shadow .3s;
@@ -2257,12 +2257,12 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .mge-leg-dot { width: 12px; height: 12px; background: var(--c); transform: rotate(45deg); border-radius: 2px; flex-shrink: 0; }
 .mge-leg-name { font-size: 14px; font-weight: 600; white-space: nowrap; }
 .mge-leg.is-sel .mge-leg-name { color: #fff; }
-.mge-leg-val { margin-left: auto; font-family: var(--mono); font-size: 13px; color: #9aa0ab; }
+.mge-leg-val { margin-left: auto; font-family: var(--mono); font-size: 13px; color: #9aa0ab; font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
 .mge-leg.is-sel .mge-leg-val { color: var(--c); }
 
-/* Bigger on desktop: give the Animation visual column more room. */
+/* Equal columns (like every other section); trim the wrapper padding so the
+   editor still fills its half as much as possible. */
 @media (min-width: 1101px) {
-  #animation { grid-template-columns: 0.7fr 1.3fr; }
   #animation .mge-wrap { padding: clamp(10px, 1.4vw, 26px); }
 }
 
