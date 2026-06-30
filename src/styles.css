@@ -1809,6 +1809,21 @@ footer {
   opacity: 0.9;
   pointer-events: none;
 }
+/* Same motion mark behind the Design section title — a subtler brand watermark
+   so it frames the title without competing with the body copy. */
+.sec-head.has-mark { position: relative; }
+.sec-head.has-mark .sec-num,
+.sec-head.has-mark .sec-title { position: relative; z-index: 1; }
+.sec-mark {
+  position: absolute; z-index: 0;
+  left: 50%; top: 48%;
+  width: clamp(240px, 24vw, 380px); height: auto;
+  transform: translate(-50%, -50%);
+  fill: none; stroke: var(--accent); stroke-width: 14;
+  stroke-linejoin: round; stroke-linecap: round;
+  opacity: 0.2;
+  pointer-events: none;
+}
 .portfolio-head .head-sub { position: relative; z-index: 2; }
 .portfolio-head .head-sub {
   font-size: 16px; line-height: 1.65;

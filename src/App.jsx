@@ -477,12 +477,13 @@ function VideoStage({ src, tag }) {
 // Unified storytelling section: number + chapter + title and the beats live in
 // one column, the visual fills the other — sized so the whole section reads in a
 // single viewport (per the dossier's "see everything at once" note).
-function Section({ id, num, chapter, title, em, beats, visual, flip }) {
+function Section({ id, num, chapter, title, em, beats, visual, flip, mark }) {
   return (
     <section className={'sec' + (flip ? ' flip' : '')} id={id}>
       <div className="sec-visual">{visual}</div>
       <div className="sec-panel">
-        <div className="sec-head reveal">
+        <div className={'sec-head reveal' + (mark ? ' has-mark' : '')}>
+          {mark && <MotionMark className="sec-mark" />}
           <div className="sec-num">{num}<span>/ 07</span></div>
           <h2 className="sec-title">{title} <em>{em}</em></h2>
         </div>
@@ -1142,6 +1143,7 @@ function Home() {
           { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
         ]}
         visual={<DesignVisual />}
+        mark
       />
 
       {/* 02 · ENGINEERING */}
@@ -1250,6 +1252,18 @@ const PROJECTS = [
   { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation', card: true },
 ];
 
+// ThemedMotion's orange motion chevrons — two open angular strokes vectorized
+// from the supplied artwork (round caps/joins via CSS). Inline SVG so it stays
+// crisp at any size. Reused behind the big titles on Work, History and Design.
+function MotionMark({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 1081 802" fill="none" aria-hidden="true">
+      <polyline points="288,272 353,152 1035,42 842,269" />
+      <polyline points="599,550 497,664 42,758 145,551" />
+    </svg>
+  );
+}
+
 function Projects() {
   useReveal();
   useEffect(() => {
@@ -1260,13 +1274,7 @@ function Projects() {
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
-            {/* Brand mark (ThemedMotion's orange motion chevrons) — inline SVG so it
-                stays crisp at any size. Two open angular strokes vectorized from the
-                supplied artwork (round caps/joins). */}
-            <svg className="work-mark" viewBox="0 0 1081 802" fill="none" aria-hidden="true">
-              <polyline points="288,272 353,152 1035,42 842,269" />
-              <polyline points="599,550 497,664 42,758 145,551" />
-            </svg>
+            <MotionMark className="work-mark" />
             <h1>Work<span className="dot">.</span></h1>
           </div>
           <p className="head-sub">
@@ -1346,6 +1354,7 @@ function History() {
         <div className="portfolio-head-inner reveal">
           <div className="kicker">Our story · Since 1989</div>
           <div className="work-title-wrap">
+            <MotionMark className="work-mark" />
             <h1>History<span className="dot">.</span></h1>
           </div>
         </div>
