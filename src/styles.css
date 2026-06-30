@@ -64,6 +64,23 @@ body {
   padding-top: 9px; padding-bottom: 9px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
+/* Over the hero (home page, at the very top): let the video run edge-to-edge to
+   the top by dropping the solid bar — just a soft scrim + light text for legibility. */
+.nav.is-hero {
+  background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.14) 55%, rgba(0,0,0,0) 100%);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+  box-shadow: none;
+  color: rgba(255,255,255,0.85);
+}
+.nav.is-hero .brand { color: #fff; }
+.nav.is-hero .brand-logo { filter: brightness(0) invert(1); }
+.nav.is-hero .brand small { color: rgba(255,255,255,0.7); border-left-color: rgba(255,255,255,0.32); }
+.nav.is-hero .nav-back { color: rgba(255,255,255,0.82); }
+.nav.is-hero .nav-projects { color: #fff; }
+.nav.is-hero .nav-projects:hover { background: rgba(255,255,255,0.14); }
+.nav.is-hero .nav-projects.is-active { background: rgba(255,255,255,0.18); color: #fff; }
+.nav.is-hero .nav-burger span { background: #fff; }
 .nav.is-scrolled .brand-logo { height: 44px; }
 .nav .brand {
   display: flex;

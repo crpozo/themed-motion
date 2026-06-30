@@ -103,6 +103,7 @@ function scrollToSectionEl(el) {
 
 function Nav({ route }) {
   const onProjects = route === '#/projects';
+  const onHome = !route.startsWith('#/');
   const scrolled = useScrolled(0.08);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -133,7 +134,7 @@ function Nav({ route }) {
 
   return (
     <>
-      <nav className={'nav' + (scrolled ? ' is-scrolled' : '') + (menuOpen ? ' menu-is-open' : '')}>
+      <nav className={'nav' + (scrolled ? ' is-scrolled' : '') + (onHome && !scrolled && !menuOpen ? ' is-hero' : '') + (menuOpen ? ' menu-is-open' : '')}>
         <a className="brand" href="#top" aria-label="ThemedMotion home" onClick={goSection('top')}>
           <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
         </a>
