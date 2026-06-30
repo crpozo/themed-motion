@@ -143,6 +143,13 @@ function Nav({ route }) {
             <span className="nav-back-label">P&amp;P Projects</span>
             <span className="nav-back-arrow" aria-hidden="true">↗</span>
           </a>
+          <a
+            href="#top"
+            className={'nav-projects' + (!route.startsWith('#/') ? ' is-active' : '')}
+            onClick={goSection('top')}
+          >
+            Process
+          </a>
           <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
             Work
           </a>
@@ -1170,7 +1177,7 @@ function Home() {
         title="Calculated beyond"
         em="assumptions."
         beats={[
-          { h: 'Engineered for the real world.', p: <>Every figure faces different demands, so we apply mechanical analysis based on the specific requirements of each project — structural analysis, dynamic analysis, overhead load calculations, fatigue evaluation, wind loading, vibration, or environmental considerations. The goal is not to overengineer everything equally, but to apply the right validation where it matters for safety, reliability, and long-term performance.</> },
+          { h: 'Engineered for the Real World', p: <>Every figure faces different demands, which is why we apply mechanical analysis based on the specific requirements of each project. Depending on the installation and operating conditions, this can include structural analysis, dynamic analysis, overhead load calculations, fatigue evaluation, wind loading, vibration analysis, or environmental considerations. The goal is not to overengineer every component, but to apply the right level of engineering validation where it truly matters for safety, reliability, and long-term performance.</> },
           { h: 'Verified beyond our workshop.', p: <>Safety and reliability are part of the engineering process from the very beginning. Alongside our internal analysis and validation workflows, we collaborate with specialized third-party reviewers when required, to independently assess structures, safety-critical systems, and installation conditions.</> },
         ]}
         visual={<AnalysisVisual />}
@@ -1319,26 +1326,63 @@ function Projects() {
   );
 }
 
-// History page — the studio's story in text + photos. Copy and images below are
-// placeholders for the client to replace with their real history.
-// Client-supplied history copy — kept verbatim. img blocks are interleaved.
+// History page — the studio's story (client copy, kept verbatim) interleaved
+// with two photo reels and two pieces of historical footage, in the order
+// reel 1 → film 1 → reel 2 → film 2.
+
+// Auto-scrolling photo "reel" — a full-bleed filmstrip. Images are duplicated
+// so the marquee loops seamlessly; it pauses on hover and stops for users who
+// prefer reduced motion (becoming a horizontally scrollable strip instead).
+function PhotoReel({ dir, count, reverse }) {
+  const imgs = Array.from({ length: count }, (_, i) => `assets/history/${dir}/${String(i + 1).padStart(2, '0')}.jpg`);
+  return (
+    <div
+      className={'photoreel reveal' + (reverse ? ' reverse' : '')}
+      style={{ '--reel-dur': `${Math.round(count * 3.4)}s` }}
+      aria-hidden="true"
+    >
+      <div className="photoreel-track">
+        {[...imgs, ...imgs].map((src, i) => (
+          <div className="photoreel-item" key={i}>
+            <img src={src} alt="" loading="lazy" draggable="false" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// A piece of historical footage — muted, auto-looping (reuses LoopVideo, which
+// lazy-loads and restarts the clip when it scrolls into view).
+function HistoryFilm({ name }) {
+  return (
+    <figure className="history-film reveal">
+      <LoopVideo
+        className="history-film-video"
+        src={`assets/history/${name}.mp4`}
+        poster={`assets/history/${name}-poster.jpg`}
+      />
+    </figure>
+  );
+}
+
 const HISTORY_STORY = [
-  { lead: true, p: "Our story began in 1989, long before the name ThemedMotion ever existed." },
   { p: "Back then, motion was already part of who we were. At P&P Projects, we believed that a themed environment should do more than look beautiful. It should breathe. It should surprise. It should tell stories that people remember for years to come." },
   { p: "At a time when animatronics were still rare in Europe, we were already designing and building mechanical characters that captivated audiences. Those early characters helped shape what themed entertainment would become, making us one of the pioneers of animatronics." },
   { p: "Over the decades, our moving creations found homes in theme parks, museums, attractions and experiences across the world. Some of the very first characters we built are still performing today, more than thirty years after they were installed." },
-  { img: 'octopus-hero.png' },
+  { reel: 'reel1', count: 19 },
   { p: "Motion has always been woven into the fabric of our company. Sometimes it was a single moving prop hidden within a larger attraction. Others, it was the centrepiece that brought an entire story to life. Every project taught us something new. Every installation added another chapter to our journey." },
   { p: "As P&P Projects grew, so did our team. New buildings were built. New disciplines joined the team. Artists, engineers, programmers, sculptors, electricians, decorators, project managers and more came together under one roof, each contributing their own craft to create unforgettable experiences." },
   { lead: true, p: "And our curiosity never stopped..." },
+  { film: 'footage1' },
   { p: "In 2019, born from the ideas of our biggest dreamers, we began designing Mormel: A fully articulated character with more than 23 axes of motion. Mormel was more than a new animatronic. It challenged everything we thought we knew about motion. It pushed us to rethink how characters should move, how they should be maintained, and how technology could better serve storytellers." },
-  { img: 'mormel.png', contain: true },
   { lead: true, p: "As development finalized in 2023, one thing became increasingly clear: motion needed its own home." },
   { p: "That realization became ThemedMotion, a new division within our company dedicated exclusively to motion innovation which was presented in IAAPA Europe." },
+  { reel: 'reel2', count: 25, reverse: true },
   { p: "From the very beginning, we worked side by side with Europe's leading theme parks and listened carefully to operators, maintenance technicians, creatives and attraction owners from around the world. Their experiences became our blueprint. They told us where traditional animatronics fell short: maintenance that consumed too much time, lack of diagnostics, difficult programming, expensive ownership, and technology that often restricted creative freedom instead of potentializing it." },
   { p: "Based on their experiences, we reimagined the entire ecosystem and process around animatronics. We realized that the technology available on the market no longer met the expectations of modern attractions. Rather than waiting for someone else to solve those challenges, we decided to build the technology ourselves." },
   { p: "Remote monitoring. Intelligent diagnostics. Simplified maintenance. Flexible creative workflows. Reliable performance. Every innovation was developed with one goal in mind: giving storytellers the freedom to focus on creating unforgettable experiences, while making ownership easier throughout the lifetime of every character." },
-  { img: 'cc-rack-open.png' },
+  { film: 'footage2' },
   { p: "Today, ThemedMotion combines more than four decades of experience with a fresh vision for the future. Although our technology has evolved beyond anything we imagined in the 1980s, our main goal remains unchanged: creating experiences that make people smile, laugh, wonder and believe." },
   { lead: true, p: "Because there is no greater complement than guests believing in a character and not thinking of the technology behind it." },
 ];
@@ -1348,31 +1392,45 @@ function History() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Group runs of consecutive paragraphs into centred prose columns; reels and
+  // films break out of that column full-bleed between the groups.
+  const blocks = [];
+  let buf = [];
+  const flushProse = (key) => {
+    if (buf.length) {
+      blocks.push(<div className="history-prose reveal" key={'prose-' + key}>{buf}</div>);
+      buf = [];
+    }
+  };
+  HISTORY_STORY.forEach((b, i) => {
+    if (b.reel) {
+      flushProse(i);
+      blocks.push(<PhotoReel key={i} dir={b.reel} count={b.count} reverse={b.reverse} />);
+    } else if (b.film) {
+      flushProse(i);
+      blocks.push(<HistoryFilm key={i} name={b.film} />);
+    } else {
+      buf.push(<p key={i} className={b.lead ? 'lead' : undefined}>{b.p}</p>);
+    }
+  });
+  flushProse('end');
+
   return (
     <>
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
-          <div className="kicker">Our story · Since 1989</div>
           <div className="work-title-wrap">
             <MotionMark className="work-mark" />
             <h1>History<span className="dot">.</span></h1>
           </div>
+          <p className="head-sub">
+            Our story began in 1989, long before the name ThemedMotion ever existed.
+          </p>
         </div>
       </header>
 
-      <section className="history">
-        <div className="history-prose">
-          {HISTORY_STORY.map((b, i) =>
-            b.img ? (
-              <figure key={i} className={'history-fig reveal' + (b.contain ? ' contain' : '')}>
-                <img src={`assets/${b.img}`} alt="" loading="lazy" />
-              </figure>
-            ) : (
-              <p key={i} className={'reveal' + (b.lead ? ' lead' : '')}>{b.p}</p>
-            ),
-          )}
-        </div>
-      </section>
+      <section className="history">{blocks}</section>
 
       <Contact />
       <SiteFooter />

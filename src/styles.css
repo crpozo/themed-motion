@@ -374,9 +374,11 @@ html.menu-open { overflow: hidden; }
 .banner .pill.vulkan::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #C2410C; display: inline-block; margin-right: 8px; vertical-align: middle; }
 .banner .scroll-cue {
   position: absolute;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Pinned to the right edge, vertically centred — clears the big bottom-left
+     headline (it used to collide with "...STORIES." at bottom-centre). */
+  top: 50%;
+  right: clamp(20px, 3vw, 44px);
+  transform: translateY(-50%);
   z-index: 4;
   display: flex;
   flex-direction: column;
@@ -1831,7 +1833,8 @@ footer {
   max-width: 58ch; margin: 30px auto 0;
 }
 /* Work page: drop the intro paragraph clear of the big WORK title + brand mark. */
-html.route-projects .portfolio-head .head-sub { margin-top: clamp(40px, 6vw, 104px); }
+html.route-projects .portfolio-head .head-sub,
+html.route-history .portfolio-head .head-sub { margin-top: clamp(40px, 6vw, 104px); }
 .portfolio-tags {
   display: flex; flex-wrap: wrap; gap: 8px;
   justify-content: center; margin-top: 26px;
@@ -1947,9 +1950,14 @@ html.route-projects, html.route-history { scroll-snap-type: none; }
 
 /* ---- History page ---- */
 html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
-.history { background: var(--bg); padding: clamp(40px, 7vh, 96px) 0 clamp(24px, 4vh, 48px); }
+.history {
+  background: var(--bg);
+  padding: clamp(40px, 7vh, 96px) 0 clamp(44px, 7vh, 80px);
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(40px, 7vh, 88px);
+}
 .history-prose {
-  max-width: 720px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 24px);
+  max-width: 720px; width: 100%; padding: 0 clamp(20px, 5vw, 24px);
   display: flex; flex-direction: column; gap: clamp(20px, 2.6vh, 32px);
 }
 .history-prose p {
@@ -1961,16 +1969,40 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   font-size: clamp(21px, 1.9vw, 28px); line-height: 1.38; letter-spacing: -0.008em;
   color: var(--ink); margin: clamp(6px, 1vh, 14px) 0;
 }
-.history-fig {
-  margin: clamp(16px, 2.4vh, 34px) 0; overflow: hidden; border-radius: 8px;
-  background: var(--bg-2); border: 1px solid var(--rule);
+
+/* Photo reel — full-bleed auto-scrolling filmstrip (images duplicated for a
+   seamless loop; edges softly masked). */
+.photoreel {
+  width: 100%; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
-.history-fig img {
-  width: 100%; height: auto; max-height: 520px; object-fit: cover;
-  object-position: center; display: block;
+.photoreel-track {
+  display: flex; gap: 14px; width: max-content;
+  animation: reelscroll var(--reel-dur, 70s) linear infinite;
 }
-.history-fig.contain { background: #0c0d10; }
-.history-fig.contain img { object-fit: contain; max-height: 480px; }
+.photoreel.reverse .photoreel-track { animation-direction: reverse; }
+.photoreel:hover .photoreel-track { animation-play-state: paused; }
+.photoreel-item { flex: 0 0 auto; height: clamp(210px, 32vh, 330px); }
+.photoreel-item img {
+  height: 100%; width: auto; display: block; border-radius: 8px;
+  object-fit: cover; background: var(--bg-2); user-select: none;
+}
+@keyframes reelscroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .photoreel { overflow-x: auto; }
+  .photoreel-track { animation: none; }
+}
+
+/* Historical footage — square clip, centred, muted auto-loop. */
+.history-film {
+  width: 100%; margin: 0; display: flex; justify-content: center;
+  padding: 0 clamp(20px, 4vw, 24px);
+}
+.history-film-video {
+  width: 100%; max-width: 660px; aspect-ratio: 1 / 1; object-fit: cover;
+  border-radius: 12px; display: block; background: var(--bg-2); border: 1px solid var(--rule);
+}
 .history-inner {
   max-width: 1040px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px);
   display: flex; flex-direction: column; gap: clamp(56px, 9vh, 120px);
