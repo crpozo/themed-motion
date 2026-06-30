@@ -1771,7 +1771,9 @@ footer {
    title, descriptive tags. */
 .portfolio-head {
   position: relative;
-  padding: calc(var(--nav-h) + 88px) 28px 60px;
+  /* Extra top room so the tall brand mark behind the title clears the fixed
+     nav bar (its top peak used to be clipped by the nav on wide screens). */
+  padding: calc(var(--nav-h) + 132px) 28px 60px;
   background: #000;
   color: #fff;
   text-align: center;
@@ -1916,7 +1918,7 @@ html.route-history .portfolio-head .head-sub { margin-top: clamp(40px, 6vw, 104p
   .portfolio-grid { columns: 2; }
 }
 @media (max-width: 600px) {
-  .portfolio-head { padding: calc(var(--nav-h) + 40px) 20px 44px; }
+  .portfolio-head { padding: calc(var(--nav-h) + 72px) 20px 44px; }
   .portfolio-head .head-sub { font-size: 15px; }
   .portfolio { padding: 4px 14px 48px; }
   .portfolio-grid { columns: 1; }

@@ -947,22 +947,9 @@ function Contact() {
               <label htmlFor="ce">Email</label>
               <input id="ce" type="email" placeholder="you@studio.com" required />
             </div>
-            <div className="row-2">
-              <div className="field">
-                <label htmlFor="cl">Project location</label>
-                <input id="cl" type="text" placeholder="City / park / country" />
-              </div>
-              <div className="field">
-                <label htmlFor="cb">Budget range</label>
-                <select id="cb" defaultValue="">
-                  <option value="" disabled>Select…</option>
-                  <option>Under €50k</option>
-                  <option>€50k – €150k</option>
-                  <option>€150k – €500k</option>
-                  <option>€500k+</option>
-                  <option>Need guidance</option>
-                </select>
-              </div>
+            <div className="field">
+              <label htmlFor="cl">Project location</label>
+              <input id="cl" type="text" placeholder="City / park / country" />
             </div>
             <div className="field">
               <label htmlFor="cm">Tell us what you'd love to make move</label>
