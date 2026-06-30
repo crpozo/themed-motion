@@ -1312,33 +1312,27 @@ function Projects() {
 
 // History page — the studio's story in text + photos. Copy and images below are
 // placeholders for the client to replace with their real history.
-const HISTORY_ROWS = [
-  {
-    year: '2016',
-    h: 'Where it started',
-    p: 'ThemedMotion began on the workshop floor of P&P Projects, building its first characters by hand. From the very first figure, the goal was simple: motion that tells a story, engineered to perform night after night.',
-    img: 'octopus-hero.png',
-  },
-  {
-    year: '2018–2020',
-    h: 'From figures to shows',
-    p: 'As projects grew, so did the studio — full-body show figures, integrated drive and wiring, and in-house kinematic analysis. Each build pushed what an animatronic character could do on a live show floor.',
-    img: 'joey-front.png',
-  },
-  {
-    year: '2021–2023',
-    h: 'Control, end to end',
-    p: 'We brought control in-house with CritterControl — our own hardware and tooling to drive, monitor and fine-tune characters in real-world conditions, so the performance stays exactly as intended.',
-    img: 'cc-rack-open.png',
-  },
-  {
-    year: 'Today',
-    h: 'Design → build → move',
-    p: 'Today the studio runs the whole arc — concept, 3D design, engineering, fabrication and show-action — for theme parks, museums and brand experiences around the world.',
-    img: 'vulkan-concept.png',
-  },
+// Client-supplied history copy — kept verbatim. img blocks are interleaved.
+const HISTORY_STORY = [
+  { lead: true, p: "Our story began in 1989, long before the name ThemedMotion ever existed." },
+  { p: "Back then, motion was already part of who we were. At P&P Projects, we believed that a themed environment should do more than look beautiful. It should breathe. It should surprise. It should tell stories that people remember for years to come." },
+  { p: "At a time when animatronics were still rare in Europe, we were already designing and building mechanical characters that captivated audiences. Those early characters helped shape what themed entertainment would become, making us one of the pioneers of animatronics." },
+  { p: "Over the decades, our moving creations found homes in theme parks, museums, attractions and experiences across the world. Some of the very first characters we built are still performing today, more than thirty years after they were installed." },
+  { img: 'octopus-hero.png' },
+  { p: "Motion has always been woven into the fabric of our company. Sometimes it was a single moving prop hidden within a larger attraction. Others, it was the centrepiece that brought an entire story to life. Every project taught us something new. Every installation added another chapter to our journey." },
+  { p: "As P&P Projects grew, so did our team. New buildings were built. New disciplines joined the team. Artists, engineers, programmers, sculptors, electricians, decorators, project managers and more came together under one roof, each contributing their own craft to create unforgettable experiences." },
+  { lead: true, p: "And our curiosity never stopped..." },
+  { p: "In 2019, born from the ideas of our biggest dreamers, we began designing Mormel: A fully articulated character with more than 23 axes of motion. Mormel was more than a new animatronic. It challenged everything we thought we knew about motion. It pushed us to rethink how characters should move, how they should be maintained, and how technology could better serve storytellers." },
+  { img: 'mormel.png', contain: true },
+  { lead: true, p: "As development finalized in 2023, one thing became increasingly clear: motion needed its own home." },
+  { p: "That realization became ThemedMotion, a new division within our company dedicated exclusively to motion innovation which was presented in IAAPA Europe." },
+  { p: "From the very beginning, we worked side by side with Europe's leading theme parks and listened carefully to operators, maintenance technicians, creatives and attraction owners from around the world. Their experiences became our blueprint. They told us where traditional animatronics fell short: maintenance that consumed too much time, lack of diagnostics, difficult programming, expensive ownership, and technology that often restricted creative freedom instead of potentializing it." },
+  { p: "Based on their experiences, we reimagined the entire ecosystem and process around animatronics. We realized that the technology available on the market no longer met the expectations of modern attractions. Rather than waiting for someone else to solve those challenges, we decided to build the technology ourselves." },
+  { p: "Remote monitoring. Intelligent diagnostics. Simplified maintenance. Flexible creative workflows. Reliable performance. Every innovation was developed with one goal in mind: giving storytellers the freedom to focus on creating unforgettable experiences, while making ownership easier throughout the lifetime of every character." },
+  { img: 'cc-rack-open.png' },
+  { p: "Today, ThemedMotion combines more than four decades of experience with a fresh vision for the future. Although our technology has evolved beyond anything we imagined in the 1980s, our main goal remains unchanged: creating experiences that make people smile, laugh, wonder and believe." },
+  { lead: true, p: "Because there is no greater complement than guests believing in a character and not thinking of the technology behind it." },
 ];
-const HISTORY_GALLERY = ['peek-animatronic.png', 'vulkan-skeleton.png', 'mech-analysis-joint.png', 'mw-routing.png'];
 
 function History() {
   useReveal();
@@ -1349,40 +1343,24 @@ function History() {
     <>
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
-          <div className="kicker">Our story · Est. P&amp;P Projects</div>
+          <div className="kicker">Our story · Since 1989</div>
           <div className="work-title-wrap">
             <h1>History<span className="dot">.</span></h1>
           </div>
-          <p className="head-sub">
-            A short look at how ThemedMotion grew from a single hand-built
-            character into a studio that designs, engineers and brings whole
-            casts of figures to life.
-          </p>
         </div>
       </header>
 
       <section className="history">
-        <div className="history-inner">
-          {HISTORY_ROWS.map((r, i) => (
-            <div key={r.year} className={'history-row reveal' + (i % 2 ? ' reverse' : '')}>
-              <div className="history-text">
-                <span className="history-year">{r.year}</span>
-                <h2>{r.h}</h2>
-                <p>{r.p}</p>
-              </div>
-              <div className="history-figure">
-                <img src={`assets/${r.img}`} alt="" loading="lazy" />
-              </div>
-            </div>
-          ))}
-
-          <div className="history-gallery reveal">
-            {HISTORY_GALLERY.map((img) => (
-              <div key={img} className="history-gallery-item">
-                <img src={`assets/${img}`} alt="" loading="lazy" />
-              </div>
-            ))}
-          </div>
+        <div className="history-prose">
+          {HISTORY_STORY.map((b, i) =>
+            b.img ? (
+              <figure key={i} className={'history-fig reveal' + (b.contain ? ' contain' : '')}>
+                <img src={`assets/${b.img}`} alt="" loading="lazy" />
+              </figure>
+            ) : (
+              <p key={i} className={'reveal' + (b.lead ? ' lead' : '')}>{b.p}</p>
+            ),
+          )}
         </div>
       </section>
 

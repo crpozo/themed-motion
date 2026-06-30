@@ -1932,6 +1932,29 @@ html.route-projects, html.route-history { scroll-snap-type: none; }
 /* ---- History page ---- */
 html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .history { background: var(--bg); padding: clamp(40px, 7vh, 96px) 0 clamp(24px, 4vh, 48px); }
+.history-prose {
+  max-width: 720px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 24px);
+  display: flex; flex-direction: column; gap: clamp(20px, 2.6vh, 32px);
+}
+.history-prose p {
+  font-size: clamp(16px, 1.15vw, 18px); line-height: 1.78; color: var(--ink-dim);
+  margin: 0; text-wrap: pretty;
+}
+.history-prose p.lead {
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(21px, 1.9vw, 28px); line-height: 1.38; letter-spacing: -0.008em;
+  color: var(--ink); margin: clamp(6px, 1vh, 14px) 0;
+}
+.history-fig {
+  margin: clamp(16px, 2.4vh, 34px) 0; overflow: hidden; border-radius: 8px;
+  background: var(--bg-2); border: 1px solid var(--rule);
+}
+.history-fig img {
+  width: 100%; height: auto; max-height: 520px; object-fit: cover;
+  object-position: center; display: block;
+}
+.history-fig.contain { background: #0c0d10; }
+.history-fig.contain img { object-fit: contain; max-height: 480px; }
 .history-inner {
   max-width: 1040px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px);
   display: flex; flex-direction: column; gap: clamp(56px, 9vh, 120px);
