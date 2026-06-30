@@ -913,10 +913,10 @@ function Contact() {
             A queue-line character, a dark ride animatronic, a stunt figure, a parade character, a creature effect, a custom show-action mechanism, or something that has never been built before. Drop a few lines and we'll be in touch within 48 hours with a calendar link and some honest questions.
           </p>
           <div className="info">
-            <div className="row"><span className="k">Studio</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
-            <div className="row"><span className="k">Email</span><span className="v">info@ppprojects.com</span></div>
+            <div className="row"><span className="k">Headquarters</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
+            <div className="row"><span className="k">Email</span><span className="v">ThemedMotion@ppprojects.com</span></div>
             <div className="row"><span className="k">Phone</span><span className="v">+31 0493 694 511</span></div>
-            <div className="row"><span className="k">Hours</span><span className="v">Mon–Fri · 09:00–17:30 CET</span></div>
+            <div className="row"><span className="k">Hours</span><span className="v">Mon–Friday · 8:30–17:00 CET</span></div>
           </div>
         </div>
         <div className="form-wrap reveal d1">
@@ -983,7 +983,7 @@ function Contact() {
 function SiteFooter() {
   return (
     <footer>
-      <div>© 2026 P&amp;P Projects B.V.</div>
+      <div>© 2026 ThemedMotion B.V.</div>
       <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">P&amp;P Projects <span aria-hidden="true">↗</span></a>
       <div>ThemedMotion</div>
     </footer>
