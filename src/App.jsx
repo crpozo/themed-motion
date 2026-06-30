@@ -1150,7 +1150,6 @@ function Home() {
           { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
         ]}
         visual={<DesignVisual />}
-        mark
       />
 
       {/* 02 · ENGINEERING */}
