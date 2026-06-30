@@ -1333,21 +1333,67 @@ function Projects() {
 // Auto-scrolling photo "reel" — a full-bleed filmstrip. Images are duplicated
 // so the marquee loops seamlessly; it pauses on hover and stops for users who
 // prefer reduced motion (becoming a horizontally scrollable strip instead).
-function PhotoReel({ dir, count, reverse }) {
+function PhotoReel({ dir, count, reverse, onOpen }) {
   const imgs = Array.from({ length: count }, (_, i) => `assets/history/${dir}/${String(i + 1).padStart(2, '0')}.jpg`);
   return (
     <div
       className={'photoreel reveal' + (reverse ? ' reverse' : '')}
       style={{ '--reel-dur': `${Math.round(count * 3.4)}s` }}
-      aria-hidden="true"
     >
       <div className="photoreel-track">
         {[...imgs, ...imgs].map((src, i) => (
-          <div className="photoreel-item" key={i}>
+          <button
+            type="button"
+            className="photoreel-item"
+            key={i}
+            onClick={() => onOpen(imgs, i % count)}
+            aria-label="Open photo"
+          >
             <img src={src} alt="" loading="lazy" draggable="false" />
-          </div>
+          </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Fullscreen image viewer ("lightbox") for the photo reels — opens on click,
+// supports prev/next (arrows or ← →), and closes on the backdrop, the ✕, or Esc.
+function Lightbox({ images, index, onClose, onNav }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowRight') onNav(1);
+      else if (e.key === 'ArrowLeft') onNav(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.documentElement.style.overflow = prevOverflow;
+    };
+  }, [onClose, onNav]);
+  return (
+    <div className="lightbox" onClick={onClose} role="dialog" aria-modal="true">
+      <button className="lightbox-close" onClick={onClose} aria-label="Close">&times;</button>
+      <button
+        className="lightbox-nav prev"
+        onClick={(e) => { e.stopPropagation(); onNav(-1); }}
+        aria-label="Previous photo"
+      >&#8249;</button>
+      <img
+        className="lightbox-img"
+        src={images[index]}
+        alt=""
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button
+        className="lightbox-nav next"
+        onClick={(e) => { e.stopPropagation(); onNav(1); }}
+        aria-label="Next photo"
+      >&#8250;</button>
+      <div className="lightbox-count">{index + 1} / {images.length}</div>
     </div>
   );
 }
@@ -1393,6 +1439,12 @@ function History() {
     window.scrollTo(0, 0);
   }, []);
 
+  // Lightbox state: { images, index } when open, null when closed.
+  const [lb, setLb] = useState(null);
+  const openLb = (images, index) => setLb({ images, index });
+  const closeLb = () => setLb(null);
+  const navLb = (d) => setLb((s) => (s ? { ...s, index: (s.index + d + s.images.length) % s.images.length } : s));
+
   // Group runs of consecutive paragraphs into centred prose columns; reels and
   // films break out of that column full-bleed between the groups.
   const blocks = [];
@@ -1406,7 +1458,7 @@ function History() {
   HISTORY_STORY.forEach((b, i) => {
     if (b.reel) {
       flushProse(i);
-      blocks.push(<PhotoReel key={i} dir={b.reel} count={b.count} reverse={b.reverse} />);
+      blocks.push(<PhotoReel key={i} dir={b.reel} count={b.count} reverse={b.reverse} onOpen={openLb} />);
     } else if (b.film) {
       flushProse(i);
       blocks.push(<HistoryFilm key={i} name={b.film} />);
@@ -1431,6 +1483,8 @@ function History() {
       </header>
 
       <section className="history">{blocks}</section>
+
+      {lb && <Lightbox images={lb.images} index={lb.index} onClose={closeLb} onNav={navLb} />}
 
       <Contact />
       <SiteFooter />
