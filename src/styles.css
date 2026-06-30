@@ -1982,6 +1982,7 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .photoreel-track {
   display: flex; gap: 14px; width: max-content;
   animation: reelscroll var(--reel-dur, 70s) linear infinite;
+  will-change: transform;
 }
 .photoreel.reverse .photoreel-track { animation-direction: reverse; }
 .photoreel-item {

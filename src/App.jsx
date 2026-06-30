@@ -1320,22 +1320,49 @@ function Projects() {
 // so the marquee loops seamlessly; it pauses on hover and stops for users who
 // prefer reduced motion (becoming a horizontally scrollable strip instead).
 function PhotoReel({ dir, count, reverse, onOpen }) {
-  const imgs = Array.from({ length: count }, (_, i) => `assets/history/${dir}/${String(i + 1).padStart(2, '0')}.jpg`);
+  const pad = (i) => String(i + 1).padStart(2, '0');
+  // Light thumbnails drive the reel; the full-size images feed the lightbox.
+  const full = Array.from({ length: count }, (_, i) => `assets/history/${dir}/${pad(i)}.jpg`);
+  const thumbs = Array.from({ length: count }, (_, i) => `assets/history/${dir}/thumb/${pad(i)}.jpg`);
+  const wrapRef = useRef(null);
+
+  // Warm the cache for the whole reel ~900px before it scrolls into view, so the
+  // marquee never shows a half-loaded photo as new tiles enter from the right.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          for (let i = 0; i < count; i++) {
+            const im = new Image();
+            im.src = `assets/history/${dir}/thumb/${String(i + 1).padStart(2, '0')}.jpg`;
+          }
+          io.disconnect();
+        }
+      },
+      { rootMargin: '900px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [dir, count]);
+
   return (
     <div
+      ref={wrapRef}
       className={'photoreel reveal' + (reverse ? ' reverse' : '')}
       style={{ '--reel-dur': `${Math.round(count * 3.4)}s` }}
     >
       <div className="photoreel-track">
-        {[...imgs, ...imgs].map((src, i) => (
+        {[...thumbs, ...thumbs].map((src, i) => (
           <button
             type="button"
             className="photoreel-item"
             key={i}
-            onClick={() => onOpen(imgs, i % count)}
+            onClick={() => onOpen(full, i % count)}
             aria-label="Open photo"
           >
-            <img src={src} alt="" loading="lazy" draggable="false" />
+            <img src={src} alt="" loading="lazy" decoding="async" draggable="false" />
           </button>
         ))}
       </div>
