@@ -1260,11 +1260,12 @@ function Projects() {
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
-            {/* Brand mark (the logo's orange double-bar) — inline SVG so it stays
-                crisp at any size, no longer a pixelated bitmap. */}
-            <svg className="work-mark" viewBox="0 0 529 388" fill="none" aria-hidden="true">
-              <polygon points="165,67 520,9 421,129 134,132" />
-              <polygon points="62,268 297,266 247,329 8,379" />
+            {/* Brand mark (ThemedMotion's orange motion chevrons) — inline SVG so it
+                stays crisp at any size. Two open angular strokes vectorized from the
+                supplied artwork (round caps/joins). */}
+            <svg className="work-mark" viewBox="0 0 1081 802" fill="none" aria-hidden="true">
+              <polyline points="288,272 353,152 1035,42 842,269" />
+              <polyline points="599,550 497,664 42,758 145,551" />
             </svg>
             <h1>Work<span className="dot">.</span></h1>
           </div>
