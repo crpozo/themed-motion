@@ -1984,7 +1984,6 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   animation: reelscroll var(--reel-dur, 70s) linear infinite;
 }
 .photoreel.reverse .photoreel-track { animation-direction: reverse; }
-.photoreel:hover .photoreel-track { animation-play-state: paused; }
 .photoreel-item {
   flex: 0 0 auto; height: clamp(210px, 32vh, 330px);
   border: 0; padding: 0; margin: 0; background: transparent;
