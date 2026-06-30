@@ -67,11 +67,22 @@ body {
 /* Over the hero (home page, at the very top): let the video run edge-to-edge to
    the top by dropping the solid bar — just a soft scrim + light text for legibility. */
 .nav.is-hero {
-  background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.14) 55%, rgba(0,0,0,0) 100%);
+  background: transparent;
   backdrop-filter: none; -webkit-backdrop-filter: none;
-  border-bottom-color: transparent;
+  border-bottom: 0;
   box-shadow: none;
   color: rgba(255,255,255,0.85);
+}
+/* Scrim as a taller pseudo-element that fades to 0 BELOW the bar, so there is no
+   hard edge/line where the nav box ends. */
+.nav.is-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 190px;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);
+  pointer-events: none;
 }
 .nav.is-hero .brand { color: #fff; }
 .nav.is-hero .brand-logo { filter: brightness(0) invert(1); }
