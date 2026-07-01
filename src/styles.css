@@ -85,10 +85,11 @@ body {
   pointer-events: none;
 }
 .nav.is-hero .brand { color: #fff; }
-/* Over the hero, swap to the light logo (white wordmark, orange chevron kept). */
-.brand-logo-light { display: none; }
-.nav.is-hero .brand-logo-dark { display: none; }
-.nav.is-hero .brand-logo-light { display: block; }
+/* Over the hero, swap to the light logo (white wordmark, orange chevron kept).
+   Extra class in the selector outranks the later `.nav .brand-logo` display rule. */
+.nav .brand-logo.brand-logo-light { display: none; }
+.nav.is-hero .brand-logo.brand-logo-dark { display: none; }
+.nav.is-hero .brand-logo.brand-logo-light { display: block; }
 .nav.is-hero .brand small { color: rgba(255,255,255,0.7); border-left-color: rgba(255,255,255,0.32); }
 .nav.is-hero .nav-back { color: rgba(255,255,255,0.82); }
 .nav.is-hero .nav-projects { color: #fff; }
