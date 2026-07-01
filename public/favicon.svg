@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1081 1081">
+  <!-- ThemedMotion mark — exact geometry from the official logo SVG, shapes
+       closed and filled with the brand orange (#f47920). -->
   <rect width="1081" height="1081" rx="232" fill="#0c0d10"/>
-  <g transform="translate(540.5 540.5) scale(0.82) translate(-538.5 -400)" fill="#f26b1f">
-    <polygon points="288,272 353,152 1035,42 842,269"/>
-    <polygon points="599,550 497,664 42,758 145,551"/>
+  <g transform="translate(540.5 540.5) scale(4.297) translate(-375.12 -111.57)" fill="#f47920">
+    <polygon points="324.69,85.85 336.77,62.18 475.75,38.85 434.91,85.85"/>
+    <polygon points="386.97,141.40 366.77,164.27 274.50,184.28 296.37,141.40"/>
   </g>
 </svg>
