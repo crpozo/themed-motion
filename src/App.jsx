@@ -575,10 +575,20 @@ function UkkieStage() {
   );
 }
 
-// Design-section visual: the concept sketch morphs into the rigged 3D critter —
-// one stage, sketch then model, the idea becoming the result.
+// Design-section visual: the client-supplied Ukkie transition film (sketch →
+// clay model turntable) as a seamless full-bleed loop. Replaces the old
+// SVG-sketch + <model-viewer> stage.
 function DesignVisual() {
-  return <UkkieStage />;
+  return (
+    <div className="ukkie-film">
+      <LoopVideo
+        className="ukkie-film-video"
+        src="assets/ukkie-transition.mp4"
+        poster="assets/ukkie-transition-poster.jpg"
+      />
+      <div className="ukkie-tag">Ukkie · Sketch → Model</div>
+    </div>
+  );
 }
 
 // Control-section visual: the real CritterControl hardware as 3D models
