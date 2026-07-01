@@ -85,7 +85,10 @@ body {
   pointer-events: none;
 }
 .nav.is-hero .brand { color: #fff; }
-.nav.is-hero .brand-logo { filter: brightness(0) invert(1); }
+/* Over the hero, swap to the light logo (white wordmark, orange chevron kept). */
+.brand-logo-light { display: none; }
+.nav.is-hero .brand-logo-dark { display: none; }
+.nav.is-hero .brand-logo-light { display: block; }
 .nav.is-hero .brand small { color: rgba(255,255,255,0.7); border-left-color: rgba(255,255,255,0.32); }
 .nav.is-hero .nav-back { color: rgba(255,255,255,0.82); }
 .nav.is-hero .nav-projects { color: #fff; }
@@ -402,11 +405,10 @@ html.menu-open { overflow: hidden; }
 .banner .pill.vulkan::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #C2410C; display: inline-block; margin-right: 8px; vertical-align: middle; }
 .banner .scroll-cue {
   position: absolute;
-  /* Pinned to the right edge, vertically centred — clears the big bottom-left
-     headline (it used to collide with "...STORIES." at bottom-centre). */
-  top: 50%;
+  /* Bottom-right corner (where the Eindhoven line used to be) — clear of the
+     big bottom-left headline. */
+  bottom: clamp(18px, 3.6vh, 40px);
   right: clamp(20px, 3vw, 44px);
-  transform: translateY(-50%);
   z-index: 4;
   display: flex;
   flex-direction: column;

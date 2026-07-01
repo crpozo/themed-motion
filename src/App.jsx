@@ -136,7 +136,8 @@ function Nav({ route }) {
     <>
       <nav className={'nav' + (scrolled ? ' is-scrolled' : '') + (onHome && !scrolled && !menuOpen ? ' is-hero' : '') + (menuOpen ? ' menu-is-open' : '')}>
         <a className="brand" href="#top" aria-label="ThemedMotion home" onClick={goSection('top')}>
-          <img className="brand-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
+          <img className="brand-logo brand-logo-dark" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
+          <img className="brand-logo brand-logo-light" src="assets/themedmotion-logo-light.png" alt="" aria-hidden="true" />
         </a>
 
         <div className="nav-actions">
@@ -257,7 +258,6 @@ function Banner() {
         <div className="banner-kicker">Animatronics, animated figures and show action equipment</div>
         <h1>Quality motion for<br /><em>powerful stories.</em></h1>
       </div>
-      <div className="banner-meta">Eindhoven, NL · Est. P&amp;P Projects</div>
       <div className="scroll-cue" aria-hidden="true">
         <span className="scroll-word">Scroll</span>
         <span className="line"></span>
@@ -981,11 +981,11 @@ function SiteFooter() {
 // ---- Motion Graph Editor: interactive animation-curve editor (Animation §) ----
 const MGE_W = 900, MGE_DUR = 5, MGE_FPS = 30;
 const MGE_CHANNELS = [
-  { key: 'opacity',  name: 'Opacity',    color: 'oklch(0.63 0.20 28)',  freq: 1.6,  phase: 0 },
-  { key: 'scale',    name: 'Scale',      color: 'oklch(0.70 0.15 72)',  freq: 1.3,  phase: 2.1 },
-  { key: 'posx',     name: 'Position X', color: 'oklch(0.60 0.13 175)', freq: 1.85, phase: 4.0 },
-  { key: 'posy',     name: 'Position Y', color: 'oklch(0.55 0.16 256)', freq: 0.9,  phase: 1.0 },
-  { key: 'rotation', name: 'Rotation',   color: 'oklch(0.58 0.19 350)', freq: 2.15, phase: 5.0 },
+  { key: 'opacity',  name: 'Head Tilt',  color: 'oklch(0.63 0.20 28)',  freq: 1.6,  phase: 0 },
+  { key: 'scale',    name: 'Jaw',        color: 'oklch(0.70 0.15 72)',  freq: 1.3,  phase: 2.1 },
+  { key: 'posx',     name: 'Top Blink',  color: 'oklch(0.60 0.13 175)', freq: 1.85, phase: 4.0 },
+  { key: 'posy',     name: 'R Shoulder', color: 'oklch(0.55 0.16 256)', freq: 0.9,  phase: 1.0 },
+  { key: 'rotation', name: 'L Elbow',    color: 'oklch(0.58 0.19 350)', freq: 2.15, phase: 5.0 },
 ];
 const mgeVal = (ch, t) => 0.5 + 0.42 * Math.sin((2 * Math.PI * ch.freq * t) / MGE_DUR + ch.phase);
 const mgeX = (t) => (t / MGE_DUR) * MGE_W;
@@ -1104,11 +1104,15 @@ function Home() {
   // page after first paint, which would otherwise leave us scrolled short.
   useEffect(() => {
     const h = window.location.hash;
-    if (!h || h.length <= 1 || h.startsWith('#/')) return;
-    const id = h.slice(1);
+    const id = h && h.length > 1 && !h.startsWith('#/') ? h.slice(1) : null;
     const scroll = () => {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView();
+      if (id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView();
+      } else {
+        // No section fragment → always land on the hero, never mid-deck at 01.
+        window.scrollTo(0, 0);
+      }
     };
     scroll();
     const timers = [setTimeout(scroll, 250), setTimeout(scroll, 700)];
@@ -1320,14 +1324,25 @@ function Projects() {
 // Auto-scrolling photo "reel" — a full-bleed filmstrip. Images are duplicated
 // so the marquee loops seamlessly; it pauses on hover and stops for users who
 // prefer reduced motion (becoming a horizontally scrollable strip instead).
-function PhotoReel({ dir, count, reverse, onOpen }) {
+// `reels` is a list of [dir, count] — one or more source folders shown as a
+// single continuous strip. Light thumbnails drive the reel; the full-size
+// images feed the lightbox.
+function PhotoReel({ reels, reverse, onOpen }) {
   const pad = (i) => String(i + 1).padStart(2, '0');
-  // Light thumbnails drive the reel; the full-size images feed the lightbox.
-  const full = Array.from({ length: count }, (_, i) => `assets/history/${dir}/${pad(i)}.jpg`);
-  const thumbs = Array.from({ length: count }, (_, i) => `assets/history/${dir}/thumb/${pad(i)}.jpg`);
+  const items = [];
+  for (const [dir, count] of reels) {
+    for (let i = 0; i < count; i++) {
+      items.push({
+        full: `assets/history/${dir}/${pad(i)}.jpg`,
+        thumb: `assets/history/${dir}/thumb/${pad(i)}.jpg`,
+      });
+    }
+  }
+  const full = items.map((it) => it.full);
+  const total = items.length;
   const wrapRef = useRef(null);
 
-  // Warm the cache for the whole reel ~900px before it scrolls into view, so the
+  // Warm the cache for the whole strip ~900px before it scrolls into view, so the
   // marquee never shows a half-loaded photo as new tiles enter from the right.
   useEffect(() => {
     const el = wrapRef.current;
@@ -1335,10 +1350,7 @@ function PhotoReel({ dir, count, reverse, onOpen }) {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          for (let i = 0; i < count; i++) {
-            const im = new Image();
-            im.src = `assets/history/${dir}/thumb/${String(i + 1).padStart(2, '0')}.jpg`;
-          }
+          items.forEach((it) => { const im = new Image(); im.src = it.thumb; });
           io.disconnect();
         }
       },
@@ -1346,24 +1358,25 @@ function PhotoReel({ dir, count, reverse, onOpen }) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [dir, count]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total]);
 
   return (
     <div
       ref={wrapRef}
       className={'photoreel reveal' + (reverse ? ' reverse' : '')}
-      style={{ '--reel-dur': `${Math.round(count * 3.4)}s` }}
+      style={{ '--reel-dur': `${Math.round(total * 3.4)}s` }}
     >
       <div className="photoreel-track">
-        {[...thumbs, ...thumbs].map((src, i) => (
+        {[...items, ...items].map((it, i) => (
           <button
             type="button"
             className="photoreel-item"
             key={i}
-            onClick={() => onOpen(full, i % count)}
+            onClick={() => onOpen(full, i % total)}
             aria-label="Open photo"
           >
-            <img src={src} alt="" loading="lazy" decoding="async" draggable="false" />
+            <img src={it.thumb} alt="" loading="lazy" decoding="async" draggable="false" />
           </button>
         ))}
       </div>
@@ -1428,21 +1441,20 @@ function HistoryFilm({ name }) {
 
 const HISTORY_STORY = [
   { p: "Back then, motion was already part of who we were. At P&P Projects, we believed that a themed environment should do more than look beautiful. It should breathe. It should surprise. It should tell stories that people remember for years to come." },
+  { film: 'footage1' },
   { p: "At a time when animatronics were still rare in Europe, we were already designing and building mechanical characters that captivated audiences. Those early characters helped shape what themed entertainment would become, making us one of the pioneers of animatronics." },
   { p: "Over the decades, our moving creations found homes in theme parks, museums, attractions and experiences across the world. Some of the very first characters we built are still performing today, more than thirty years after they were installed." },
-  { reel: 'reel1', count: 19 },
+  { reels: [['reel1', 19], ['reel2', 25]] },
   { p: "Motion has always been woven into the fabric of our company. Sometimes it was a single moving prop hidden within a larger attraction. Others, it was the centrepiece that brought an entire story to life. Every project taught us something new. Every installation added another chapter to our journey." },
   { p: "As P&P Projects grew, so did our team. New buildings were built. New disciplines joined the team. Artists, engineers, programmers, sculptors, electricians, decorators, project managers and more came together under one roof, each contributing their own craft to create unforgettable experiences." },
+  { film: 'footage2' },
   { lead: true, p: "And our curiosity never stopped..." },
-  { film: 'footage1' },
   { p: "In 2019, born from the ideas of our biggest dreamers, we began designing Mormel: A fully articulated character with more than 23 axes of motion. Mormel was more than a new animatronic. It challenged everything we thought we knew about motion. It pushed us to rethink how characters should move, how they should be maintained, and how technology could better serve storytellers." },
   { lead: true, p: "As development finalized in 2023, one thing became increasingly clear: motion needed its own home." },
   { p: "That realization became ThemedMotion, a new division within our company dedicated exclusively to motion innovation which was presented in IAAPA Europe." },
-  { reel: 'reel2', count: 25, reverse: true },
   { p: "From the very beginning, we worked side by side with Europe's leading theme parks and listened carefully to operators, maintenance technicians, creatives and attraction owners from around the world. Their experiences became our blueprint. They told us where traditional animatronics fell short: maintenance that consumed too much time, lack of diagnostics, difficult programming, expensive ownership, and technology that often restricted creative freedom instead of potentializing it." },
   { p: "Based on their experiences, we reimagined the entire ecosystem and process around animatronics. We realized that the technology available on the market no longer met the expectations of modern attractions. Rather than waiting for someone else to solve those challenges, we decided to build the technology ourselves." },
   { p: "Remote monitoring. Intelligent diagnostics. Simplified maintenance. Flexible creative workflows. Reliable performance. Every innovation was developed with one goal in mind: giving storytellers the freedom to focus on creating unforgettable experiences, while making ownership easier throughout the lifetime of every character." },
-  { film: 'footage2' },
   { p: "Today, ThemedMotion combines more than four decades of experience with a fresh vision for the future. Although our technology has evolved beyond anything we imagined in the 1980s, our main goal remains unchanged: creating experiences that make people smile, laugh, wonder and believe." },
   { lead: true, p: "Because there is no greater complement than guests believing in a character and not thinking of the technology behind it." },
 ];
@@ -1470,9 +1482,9 @@ function History() {
     }
   };
   HISTORY_STORY.forEach((b, i) => {
-    if (b.reel) {
+    if (b.reels) {
       flushProse(i);
-      blocks.push(<PhotoReel key={i} dir={b.reel} count={b.count} reverse={b.reverse} onOpen={openLb} />);
+      blocks.push(<PhotoReel key={i} reels={b.reels} reverse={b.reverse} onOpen={openLb} />);
     } else if (b.film) {
       flushProse(i);
       blocks.push(<HistoryFilm key={i} name={b.film} />);
@@ -1510,6 +1522,11 @@ export default function App() {
   const route = useHashRoute();
   const onProjects = route === '#/projects';
   const onHistory = route === '#/history';
+  // Don't let the browser restore a previous scroll position on first load —
+  // otherwise the deck can open part-way down (at section 01) instead of the hero.
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  }, []);
   // The Work and History pages are normal long pages — never snap decks.
   useEffect(() => {
     document.documentElement.classList.toggle('route-projects', onProjects);
