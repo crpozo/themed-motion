@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
@@ -29,7 +29,15 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      # Same build, shared with the cPanel job below.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          include-hidden-files: true
+          retention-days: 1
 
+  # Preview copy at https://crpozo.github.io/themed-motion/
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -39,3 +47,32 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Production: syncs dist/ to the cPanel hosting over FTP(S). Skipped until
+  # the FTP_SERVER_DIR repo variable is set (e.g. "/public_html/"), so the
+  # workflow stays green before the hosting is wired up.
+  #   secrets:   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+  #   variables: FTP_SERVER_DIR (required, must end with "/"),
+  #              FTP_PROTOCOL (optional: ftps | ftp, defaults to ftps)
+  # Only files that changed since the last run are uploaded, and nothing on
+  # the server outside of what this job uploaded is touched.
+  deploy-cpanel:
+    needs: build
+    if: vars.FTP_SERVER_DIR != ''
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cpanel
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: ./dist/
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
