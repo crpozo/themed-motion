@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { SoftSketch } from './Sketches.jsx';
+import { T, AdminBar } from './content.jsx';
+import { useContent, useMedia, useFlag, useList, useLink, usePlain, plainText } from './content-core.js';
+import { SECTIONS } from './schema.js';
 import ukkieModelSvg from './ukkie-simplified.svg?raw';
 
 function useReveal() {
@@ -18,15 +21,12 @@ function useReveal() {
   }, []);
 }
 
-const SECTIONS = [
-  { id: 'design', label: 'Design' },
-  { id: 'engineering', label: 'Engineering' },
-  { id: 'analysis', label: 'Analysis' },
-  { id: 'actuators', label: 'Actuators' },
-  { id: 'control', label: 'Control' },
-  { id: 'animation', label: 'Animation' },
-  { id: 'finishing', label: 'Finishing' },
-];
+// The dashboard (login, content, users) is its own chunk — visitors never load it.
+const AdminApp = lazy(() => import('./admin/AdminApp.jsx'));
+
+// Content key for a nav label (see <T> in content.jsx). Section labels are
+// shared by the mobile menu and the side rail, so they edit as one.
+const labelKey = (id) => (id === 'top' ? 'nav.intro' : id === 'contact' ? 'nav.contact' : `sec.${id}.label`);
 
 function useActive(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -77,10 +77,6 @@ function useIsMobile(maxWidth = 760) {
   return mobile;
 }
 
-// Parent P&P Projects site — the "back" affordance pairs with the link they
-// add on their side pointing into this experience.
-const PP_PROJECTS_URL = 'https://www.ppprojects.com/';
-
 // True once the visitor has scrolled past the hero. Used to reveal the process
 // tracker only after they've started moving through the page.
 function useScrolled(factor = 0.6) {
@@ -102,6 +98,13 @@ function scrollToSectionEl(el) {
 }
 
 function Nav({ route }) {
+  const { editing } = useContent();
+  const ppUrl = useLink('link.pp');
+  const logo = useMedia('brand.logo');
+  const logoLight = useMedia('brand.logoLight');
+  // Hidden pages drop out of the menus (a logged-in editor still sees them).
+  const showWork = useFlag('page.work') || editing;
+  const showHistory = useFlag('page.history') || editing;
   const onProjects = route === '#/projects';
   const onHome = !route.startsWith('#/');
   const scrolled = useScrolled(0.08);
@@ -136,13 +139,13 @@ function Nav({ route }) {
     <>
       <nav className={'nav' + (scrolled ? ' is-scrolled' : '') + (onHome && !scrolled && !menuOpen ? ' is-hero' : '') + (menuOpen ? ' menu-is-open' : '')}>
         <a className="brand" href="#top" aria-label="ThemedMotion home" onClick={goSection('top')}>
-          <img className="brand-logo brand-logo-dark" src="assets/themedmotion-logo.png" alt="ThemedMotion by P&P Projects" />
-          <img className="brand-logo brand-logo-light" src="assets/themedmotion-logo-light.png" alt="" aria-hidden="true" />
+          <img className="brand-logo brand-logo-dark" src={logo} alt="ThemedMotion by P&P Projects" />
+          <img className="brand-logo brand-logo-light" src={logoLight} alt="" aria-hidden="true" />
         </a>
 
         <div className="nav-actions">
-          <a className="nav-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer" aria-label="Go to P&P Projects (opens in a new tab)" title="P&P Projects">
-            <span className="nav-back-label">P&amp;P Projects</span>
+          <a className="nav-back" href={ppUrl} target="_blank" rel="noopener noreferrer" aria-label="Go to P&P Projects (opens in a new tab)" title="P&P Projects">
+            <T className="nav-back-label" k="nav.pp" />
             <span className="nav-back-arrow" aria-hidden="true">↗</span>
           </a>
           <a
@@ -150,15 +153,19 @@ function Nav({ route }) {
             className={'nav-projects' + (!route.startsWith('#/') ? ' is-active' : '')}
             onClick={goSection('top')}
           >
-            Process
+            <T k="nav.process" />
           </a>
-          <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
-            Work
-          </a>
-          <a href="#/history" className={'nav-projects' + (route === '#/history' ? ' is-active' : '')}>
-            History
-          </a>
-          <a className="nav-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
+          {showWork && (
+            <a href="#/projects" className={'nav-projects' + (onProjects ? ' is-active' : '')}>
+              <T k="nav.work" />
+            </a>
+          )}
+          {showHistory && (
+            <a href="#/history" className={'nav-projects' + (route === '#/history' ? ' is-active' : '')}>
+              <T k="nav.history" />
+            </a>
+          )}
+          <a className="nav-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}><T k="nav.cta" /></a>
           <button
             type="button"
             className={'nav-burger' + (menuOpen ? ' is-open' : '')}
@@ -176,27 +183,31 @@ function Nav({ route }) {
           containing block for this fixed overlay and clip it to the bar. */}
       {menuOpen && (
         <div className="mobile-menu" id="mobile-menu">
-          <div className="mm-kicker">Menu</div>
+          <T as="div" className="mm-kicker" k="nav.menu" />
           <div className="mm-links">
             {menuItems.map((it, i) => (
               <a key={it.id} className="mm-link" href={`#${it.id}`} onClick={goSection(it.id)}>
                 <span className="idx">{String(i).padStart(2, '0')}</span>
-                {it.label}
+                <T k={labelKey(it.id)} />
               </a>
             ))}
-            <a className="mm-link" href="#/projects" onClick={() => setMenuOpen(false)}>
-              <span className="idx">↗</span>
-              Work
-            </a>
-            <a className="mm-link" href="#/history" onClick={() => setMenuOpen(false)}>
-              <span className="idx">↗</span>
-              History
-            </a>
+            {showWork && (
+              <a className="mm-link" href="#/projects" onClick={() => setMenuOpen(false)}>
+                <span className="idx">↗</span>
+                <T k="nav.work" />
+              </a>
+            )}
+            {showHistory && (
+              <a className="mm-link" href="#/history" onClick={() => setMenuOpen(false)}>
+                <span className="idx">↗</span>
+                <T k="nav.history" />
+              </a>
+            )}
           </div>
           <div className="mm-foot">
-            <a className="mm-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}>Let's Make It Move →</a>
-            <a className="mm-ext" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">
-              P&amp;P Projects ↗
+            <a className="mm-cta" href="#contact" onClick={(e) => { setMenuOpen(false); scrollToContact(e); }}><T k="nav.cta" /></a>
+            <a className="mm-ext" href={ppUrl} target="_blank" rel="noopener noreferrer">
+              <T k="nav.pp" /> ↗
             </a>
           </div>
         </div>
@@ -227,7 +238,7 @@ function SideNav({ route }) {
               onClick={(e) => go(e, s.id)}
               aria-current={active === s.id ? 'true' : undefined}
             >
-              <span className="sidenav-name">{s.label}</span>
+              <T className="sidenav-name" k={labelKey(s.id)} />
               <span className="sidenav-dot" aria-hidden="true"></span>
             </a>
           </li>
@@ -238,14 +249,16 @@ function SideNav({ route }) {
 }
 
 function Banner() {
+  const video = useMedia('hero.video');
   return (
     <section className="banner" id="top">
-      <img className="banner-fallback" src="assets/octopus-hero.png" alt="" aria-hidden="true" />
+      <img className="banner-fallback" src={useMedia('hero.fallback')} alt="" aria-hidden="true" />
       {/* Self-hosted reel — native muted autoplay loop, zero player chrome. */}
       <video
         className="banner-video"
-        src="assets/banner-reel.mp4"
-        poster="assets/banner-reel-poster.jpg"
+        key={video}
+        src={video}
+        poster={useMedia('hero.poster')}
         autoPlay
         muted
         loop
@@ -255,11 +268,11 @@ function Banner() {
         aria-hidden="true"
       />
       <div className="copy">
-        <div className="banner-kicker">Animatronics, animated figures and show action equipment</div>
-        <h1>Quality motion for<br /><em>powerful stories.</em></h1>
+        <T as="div" className="banner-kicker" k="hero.kicker" />
+        <h1><T k="hero.title" /><br /><T as="em" k="hero.em" /></h1>
       </div>
       <div className="scroll-cue" aria-hidden="true">
-        <span className="scroll-word">Scroll</span>
+        <T className="scroll-word" k="hero.scroll" />
         <span className="line"></span>
         <svg className="scroll-chevron" viewBox="0 0 24 24" width="26" height="26">
           <polyline points="5 8 12 15 19 8" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -342,38 +355,11 @@ function Bp({ title, code, children }) {
 // Analysis-section visual: the real FEA stress-analysis animation, framed on the
 // blueprint board. Lazy-loaded/played only near the viewport to keep it light.
 function AnalysisVisual() {
-  const vref = useRef(null);
-  useEffect(() => {
-    const v = vref.current;
-    if (!v) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/analysis-fea.mp4');
-          try { v.currentTime = 0; } catch (_) {}   // restart from the start on entry
-          v.play().catch(() => {});
-        } else {
-          v.pause();
-        }
-      },
-      { threshold: 0.25 },
-    );
-    io.observe(v);
-    return () => io.disconnect();
-  }, []);
+  const src = useMedia('sec.analysis.video');
+  const poster = useMedia('sec.analysis.poster');
   return (
-    <Bp title="Load case · ME-08" code="ANALYSIS · FEA">
-      <video
-        ref={vref}
-        className="bp-video"
-        muted
-        loop
-        playsInline
-        preload="none"
-        poster="assets/analysis-fea-poster.jpg"
-        aria-hidden="true"
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-      />
+    <Bp title={<T k="sec.analysis.stamp" />} code={<T k="sec.analysis.code" />}>
+      <LoopVideo className="bp-video" src={src} poster={poster} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     </Bp>
   );
 }
@@ -382,7 +368,7 @@ function AnalysisVisual() {
 // section actually scrolls into view (not 400px early), so you always catch the
 // animation from the start instead of mid-way. Source clips are pre-trimmed so
 // the last frame isn't a duplicate of the first — the loop runs with no jump.
-function LoopVideo({ src, poster, className }) {
+function LoopVideo({ src, poster, className, style }) {
   const ref = useRef(null);
   useEffect(() => {
     const v = ref.current;
@@ -390,7 +376,7 @@ function LoopVideo({ src, poster, className }) {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          if (!v.getAttribute('src')) v.setAttribute('src', src);
+          if (v.getAttribute('src') !== src) v.setAttribute('src', src);
           try { v.currentTime = 0; } catch (_) {}
           v.play().catch(() => {});
         } else {
@@ -403,7 +389,7 @@ function LoopVideo({ src, poster, className }) {
     return () => io.disconnect();
   }, [src]);
   return (
-    <video ref={ref} className={className} muted loop playsInline preload="none" poster={poster} aria-hidden="true" />
+    <video ref={ref} className={className} style={style} muted loop playsInline preload="none" poster={poster} aria-hidden="true" />
   );
 }
 
@@ -442,8 +428,8 @@ function CCSketchBoard() {
 function MotorWiringBoard() {
   return (
     <div className="cc-board mw-board">
-      <LoopVideo className="mw-fill" src="assets/mw-routing-anim.mp4" poster="assets/mw-routing-anim-poster.jpg" />
-      <div className="cc-cell-tag mw-tag">Routing study · MW-A</div>
+      <LoopVideo className="mw-fill" src={useMedia('sec.actuators.video')} poster={useMedia('sec.actuators.poster')} />
+      <T as="div" className="cc-cell-tag mw-tag" k="sec.actuators.tag" />
     </div>
   );
 }
@@ -485,7 +471,7 @@ function VideoStage({ src, tag }) {
 // Unified storytelling section: number + chapter + title and the beats live in
 // one column, the visual fills the other — sized so the whole section reads in a
 // single viewport (per the dossier's "see everything at once" note).
-function Section({ id, num, chapter, title, em, beats, visual, flip, mark }) {
+function Section({ id, num, beats, visual, flip, mark }) {
   return (
     <section className={'sec' + (flip ? ' flip' : '')} id={id}>
       <div className="sec-visual">{visual}</div>
@@ -493,15 +479,15 @@ function Section({ id, num, chapter, title, em, beats, visual, flip, mark }) {
         <div className={'sec-head reveal' + (mark ? ' has-mark' : '')}>
           {mark && <MotionMark className="sec-mark" />}
           <div className="sec-num">{num}<span>/ 07</span></div>
-          <h2 className="sec-title">{title} <em>{em}</em></h2>
+          <h2 className="sec-title"><T k={`sec.${id}.title`} /> <T as="em" k={`sec.${id}.em`} /></h2>
         </div>
         <div className="sec-beats reveal d1">
-          {beats.map((b, i) => (
+          {beats.map((_, i) => (
             <div className="beat" key={i}>
               <div className="beat-idx">{String(i + 1).padStart(2, '0')} / {String(beats.length).padStart(2, '0')}</div>
               <div className="beat-body">
-                <h3>{b.h}</h3>
-                <p>{b.p}</p>
+                <T as="h3" k={`sec.${id}.b${i + 1}.h`} />
+                <T as="p" k={`sec.${id}.b${i + 1}.p`} />
               </div>
             </div>
           ))}
@@ -583,10 +569,10 @@ function DesignVisual() {
     <div className="ukkie-film">
       <LoopVideo
         className="ukkie-film-video"
-        src="assets/ukkie-transition.mp4"
-        poster="assets/ukkie-transition-poster.jpg"
+        src={useMedia('sec.design.video')}
+        poster={useMedia('sec.design.poster')}
       />
-      <div className="ukkie-tag">Ukkie · Sketch → Model</div>
+      <T as="div" className="ukkie-tag" k="sec.design.tag" />
     </div>
   );
 }
@@ -600,8 +586,8 @@ function DesignVisual() {
 function ControlVisual() {
   return (
     <div className="mv-stage mv-solo">
-      <LoopVideo className="mv-fill" src="assets/control-box.mp4" poster="assets/control-box-poster.jpg" />
-      <div className="mv-label mv-label-solo">Control box</div>
+      <LoopVideo className="mv-fill" src={useMedia('sec.control.video')} poster={useMedia('sec.control.poster')} />
+      <T as="div" className="mv-label mv-label-solo" k="sec.control.tag" />
     </div>
   );
 }
@@ -719,7 +705,7 @@ function VulkanStage() {
         ></model-viewer>
       </div>
       <div className="vulkan-controls">
-        <span className="vulkan-end">Structure</span>
+        <T className="vulkan-end" k="sec.engineering.structure" />
         <input
           className="vulkan-slider"
           type="range"
@@ -730,10 +716,10 @@ function VulkanStage() {
           aria-label="Blend between internal structure and body shells"
           style={{ '--fill': `${Math.round(shell)}%` }}
         />
-        <span className="vulkan-end">Body</span>
+        <T className="vulkan-end" k="sec.engineering.body" />
       </div>
-      <div className="rotate3d-tag">VULKAN SC11</div>
-      <div className="vulkan-hint" aria-hidden="true">Drag to rotate</div>
+      <T as="div" className="rotate3d-tag" k="sec.engineering.tag" />
+      <T as="div" className="vulkan-hint" aria-hidden="true" k="sec.engineering.hint" />
     </div>
   );
 }
@@ -834,6 +820,8 @@ function CurvesVisual() {
 // the copy on top. Video is lazy-loaded/played only when the section is near the
 // viewport to keep the page light.
 function FinishingSection({ beats }) {
+  const src = useMedia('sec.finishing.video');
+  const poster = useMedia('sec.finishing.poster');
   const vref = useRef(null);
   useEffect(() => {
     const v = vref.current;
@@ -841,7 +829,7 @@ function FinishingSection({ beats }) {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          if (!v.getAttribute('src')) v.setAttribute('src', 'assets/finishing-v2.mp4');
+          if (v.getAttribute('src') !== src) v.setAttribute('src', src);
           v.play().catch(() => {});
         } else {
           v.pause();
@@ -851,7 +839,7 @@ function FinishingSection({ beats }) {
     );
     io.observe(v);
     return () => io.disconnect();
-  }, []);
+  }, [src]);
   return (
     <section className="finishing" id="finishing">
       <video
@@ -861,22 +849,22 @@ function FinishingSection({ beats }) {
         loop
         playsInline
         preload="none"
-        poster="assets/finishing-v2-poster.jpg"
+        poster={poster}
         aria-hidden="true"
       />
       <div className="finishing-scrim" aria-hidden="true"></div>
       <div className="finishing-inner">
         <div className="sec-head reveal">
           <div className="sec-num">07<span>/ 07</span></div>
-          <h2 className="sec-title">And then it <em>comes to life.</em></h2>
+          <h2 className="sec-title"><T k="sec.finishing.title" /> <T as="em" k="sec.finishing.em" /></h2>
         </div>
         <div className="sec-beats finishing-beats reveal d1">
-          {beats.map((b, i) => (
+          {beats.map((_, i) => (
             <div className="beat" key={i}>
               <div className="beat-idx">{String(i + 1).padStart(2, '0')} / {String(beats.length).padStart(2, '0')}</div>
               <div className="beat-body">
-                <h3>{b.h}</h3>
-                <p>{b.p}</p>
+                <T as="h3" k={`sec.finishing.b${i + 1}.h`} />
+                <T as="p" k={`sec.finishing.b${i + 1}.p`} />
               </div>
             </div>
           ))}
@@ -914,27 +902,31 @@ function scrollToContact(e) {
 // Shared contact section — rendered identically on Home and Projects, so any
 // edit here reflects on both pages.
 function Contact() {
+  const mormel = useMedia('contact.mormel');
+  const mormelHand = useMedia('contact.mormelHand');
   return (
     <section className="contact" id="contact">
       <div className="contact-inner">
         <div className="reveal">
-          <div className="kicker">Contact · Let's make it move</div>
-          <h2>Now, we'd love to make it <em>move.</em></h2>
-          <p className="lede">
-            A queue-line character, a dark ride animatronic, a stunt figure, a parade character, a creature effect, a custom show-action mechanism, or something that has never been built before. Drop a few lines and we'll be in touch within 48 hours with a calendar link and some honest questions.
-          </p>
+          <T as="div" className="kicker" k="contact.kicker" />
+          <h2><T k="contact.title" /> <T as="em" k="contact.em" /></h2>
+          <T
+            as="p"
+            className="lede"
+            k="contact.lede"
+          />
           <div className="info">
-            <div className="row"><span className="k">Headquarters</span><span className="v">Vlechter 28<br />5711 LS Someren · NL</span></div>
-            <div className="row"><span className="k">Email</span><span className="v">ThemedMotion@ppprojects.com</span></div>
-            <div className="row"><span className="k">Phone</span><span className="v">+31 0493 694 511</span></div>
-            <div className="row"><span className="k">Hours</span><span className="v">Mon–Friday · 8:30–17:00 CET</span></div>
+            <div className="row"><T className="k" k="contact.hq.k" /><T className="v" k="contact.hq.v" /></div>
+            <div className="row"><T className="k" k="contact.email.k" /><T className="v" k="contact.email.v" /></div>
+            <div className="row"><T className="k" k="contact.phone.k" /><T className="v" k="contact.phone.v" /></div>
+            <div className="row"><T className="k" k="contact.hours.k" /><T className="v" k="contact.hours.v" /></div>
           </div>
         </div>
         <div className="form-wrap reveal d1">
           <div className="peek peek-mormel">
-            <div className="speech">Psst — over here.</div>
-            <img className="peek-base" src="assets/mormel.png" alt="" />
-            <img className="peek-paw" src="assets/mormel-hand.png" alt="" aria-hidden="true" />
+            <T as="div" className="speech" k="contact.speech" />
+            <img className="peek-base" src={mormel} alt="" />
+            <img className="peek-paw" src={mormelHand} alt="" aria-hidden="true" />
           </div>
           <form
             onSubmit={(e) => {
@@ -942,34 +934,34 @@ function Contact() {
               alert('Thanks! We’ll be in touch within 48 hours.');
             }}
           >
-            <div className="form-title">Brief us in 60 seconds</div>
-            <div className="form-sub">No NDA needed yet</div>
+            <T as="div" className="form-title" k="form.title" />
+            <T as="div" className="form-sub" k="form.sub" />
             <div className="row-2">
               <div className="field">
-                <label htmlFor="cn">Your name</label>
+                <T as="label" htmlFor="cn" k="form.name" />
                 <input id="cn" type="text" placeholder="Jane Doe" required />
               </div>
               <div className="field">
-                <label htmlFor="cc">Company</label>
+                <T as="label" htmlFor="cc" k="form.company" />
                 <input id="cc" type="text" placeholder="Studio / venue" />
               </div>
             </div>
             <div className="field">
-              <label htmlFor="ce">Email</label>
+              <T as="label" htmlFor="ce" k="form.email" />
               <input id="ce" type="email" placeholder="you@studio.com" required />
             </div>
             <div className="field">
-              <label htmlFor="cl">Project location</label>
+              <T as="label" htmlFor="cl" k="form.location" />
               <input id="cl" type="text" placeholder="City / park / country" />
             </div>
             <div className="field">
-              <label htmlFor="cm">Tell us what you'd love to make move</label>
+              <T as="label" htmlFor="cm" k="form.message" />
               <textarea id="cm" placeholder="A queue-line character, a dark ride animatronic, a creature effect…"></textarea>
             </div>
             <button type="submit" className="cta-btn">
-              Send brief <span className="arrow">→</span>
+              <T k="form.submit" /> <span className="arrow">→</span>
             </button>
-            <div className="form-foot">We reply within 48 hours · Your brief stays with us</div>
+            <T as="div" className="form-foot" k="form.foot" />
           </form>
         </div>
       </div>
@@ -979,11 +971,12 @@ function Contact() {
 
 // Shared site footer
 function SiteFooter() {
+  const ppUrl = useLink('link.pp');
   return (
     <footer>
-      <div>© 2026 ThemedMotion B.V.</div>
-      <a className="footer-back" href={PP_PROJECTS_URL} target="_blank" rel="noopener noreferrer">P&amp;P Projects <span aria-hidden="true">↗</span></a>
-      <div>ThemedMotion</div>
+      <T as="div" k="footer.copy" />
+      <a className="footer-back" href={ppUrl} target="_blank" rel="noopener noreferrer"><T k="footer.pp" /> <span aria-hidden="true">↗</span></a>
+      <T as="div" k="footer.brand" />
     </footer>
   );
 }
@@ -1064,9 +1057,9 @@ function MotionGraphEditor() {
       <div className="mge-card">
         <div className="mge-head">
           <div className="mge-head-l">
-            <span className="mge-chip">Animation</span>
-            <div className="mge-title">Graph Editor</div>
-            <div className="mge-sub">Value channels · 5.00s · 30 fps</div>
+            <T className="mge-chip" k="sec.animation.chip" />
+            <T as="div" className="mge-title" k="sec.animation.title" />
+            <T as="div" className="mge-sub" k="sec.animation.sub" />
           </div>
           <div className="mge-head-r">
             <div className="mge-time">{time.toFixed(2).padStart(5, '0')}s</div>
@@ -1096,7 +1089,7 @@ function MotionGraphEditor() {
           {MGE_DATA.map((ch) => (
             <div key={ch.key} className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')} style={{ '--c': ch.color }}>
               <span className="mge-leg-dot" />
-              <span className="mge-leg-name">{ch.name}</span>
+              <T className="mge-leg-name" k={`sec.animation.ch.${ch.key}`} />
               <span className="mge-leg-val">{Math.round(mgeVal(ch, time) * 100)}%</span>
             </div>
           ))}
@@ -1105,6 +1098,16 @@ function MotionGraphEditor() {
     </div>
   );
 }
+
+// Which visual sits next to each storytelling section (copy lives in schema.js).
+const SECTION_VISUALS = {
+  design: DesignVisual,
+  engineering: VulkanStage,
+  analysis: AnalysisVisual,
+  actuators: MotorWiringBoard,
+  control: ControlVisual,
+  animation: MotionGraphEditor,
+};
 
 function Home() {
   useReveal();
@@ -1139,104 +1142,22 @@ function Home() {
     <>
       <Banner />
 
-      {/* 01 · DESIGN */}
-      <Section
-        id="design"
-        num="01"
-        chapter="Chapter 01 · Design"
-        title="It all starts with"
-        em="an idea."
-        beats={[
-          { h: 'We begin wherever you are.', p: <>Every creative process is different. Whether you already have a finished design, a loose sketch, or only the beginning of an idea, we can join the project where it stands today. In collaboration with the design department of P&amp;P Projects, we help shape concepts into defined and buildable characters.</> },
-          { h: 'Creative 3D modelling.', p: <>An idea truly starts to take shape once it becomes three-dimensional. During the modelling process, sketches, references or existing models are translated into a detailed digital sculpture that defines the appearance and proportions of the figure.</> },
-          { h: 'Movement with intent.', p: <>The purpose of engineering is not to decide how a character should perform, but to make the intended performance possible. By defining movement during the creative stage, motion becomes part of the storytelling process instead of only a technical solution.</> },
-        ]}
-        visual={<DesignVisual />}
-      />
+      {SECTIONS.slice(0, -1).map((sec, i) => {
+        const Visual = SECTION_VISUALS[sec.id];
+        return (
+          <Section
+            key={sec.id}
+            id={sec.id}
+            num={String(i + 1).padStart(2, '0')}
+            flip={i % 2 === 1}
+            beats={sec.beats}
+            visual={<Visual />}
+          />
+        );
+      })}
 
-      {/* 02 · ENGINEERING */}
-      <Section
-        flip
-        id="engineering"
-        num="02"
-        chapter="Chapter 02 · Engineering"
-        title="Mechanical"
-        em="engineering."
-        beats={[
-          { h: 'Engineering for performance.', p: <>The figure is developed internally through mechanical engineering. Motors, actuators, linkages, and structures are integrated into the character and documented to the highest standards — the engineering supports the performance of the figure, allowing the mechanics to serve the character rather than reshape it around technical convenience.</> },
-          { h: 'Designed for long-term operation.', p: <>Mechanical engineering is not only about making a figure move, but about making it reliable, maintainable, and built for long-term operation. We focus on service accessibility, durable construction, efficient layouts, and components that withstand continuous use in demanding environments.</> },
-          { h: 'Built for all conditions.', p: <>Our creations rarely live in ideal environments. Outdoor installations, underwater scenes, chlorinated or salt water, humidity, dust, heat, and continuous indoor operation each place different demands on a character. We design with those conditions in mind from the very beginning.</> },
-        ]}
-        visual={<VulkanStage />}
-      />
-
-      {/* 03 · ANALYSIS */}
-      <Section
-        id="analysis"
-        num="03"
-        chapter="Chapter 03 · Analysis"
-        title="Calculated beyond"
-        em="assumptions."
-        beats={[
-          { h: 'Engineered for the Real World', p: <>Every figure faces different demands, which is why we apply mechanical analysis based on the specific requirements of each project. Depending on the installation and operating conditions, this can include structural analysis, dynamic analysis, overhead load calculations, fatigue evaluation, wind loading, vibration analysis, or environmental considerations. The goal is not to overengineer every component, but to apply the right level of engineering validation where it truly matters for safety, reliability, and long-term performance.</> },
-          { h: 'Verified beyond our workshop.', p: <>Safety and reliability are part of the engineering process from the very beginning. Alongside our internal analysis and validation workflows, we collaborate with specialized third-party reviewers when required, to independently assess structures, safety-critical systems, and installation conditions.</> },
-        ]}
-        visual={<AnalysisVisual />}
-      />
-
-      {/* 04 · ACTUATORS */}
-      <Section
-        flip
-        id="actuators"
-        num="04"
-        chapter="Chapter 04 · Actuators"
-        title=""
-        em="Actuators"
-        beats={[
-          { h: 'Electrical motion, done right.', p: <>The actuator is the heart of every animatronic figure. We primarily work with electrical actuators for their precision, smooth motion, and overall quality of movement. Pneumatics remain in our toolbox where requested or where environmental conditions make them the better solution. Over the years we've worked with many leading actuator manufacturers and developed clear preferences for their most effective use.</> },
-          { h: 'Say goodbye to cable strain.', p: <>We use integrated drive actuators — motor, encoder, and drive electronics combined into a single compact unit. Communication and power are daisy-chained directly through the actuators, leaving a <b>single cable path</b> running through the character. Fewer cables means cleaner routing, fewer failure points, and far greater flexibility through compact spaces and moving joints.</> },
-          { h: 'Designed for real operation.', p: <>Our systems are engineered with long-term operation and maintenance in mind. Actuators are selected for reliability, serviceability, and availability — positioned for accessibility, with replacement units often available within days rather than months.</> },
-        ]}
-        visual={<MotorWiringBoard />}
-      />
-
-      {/* 05 · CONTROL */}
-      <Section
-        id="control"
-        num="05"
-        chapter="Chapter 05 · Control"
-        title="Control even the"
-        em="finest detail."
-        beats={[
-          { h: 'The brain behind our characters.', p: <>Every character is powered by our custom-designed <b>CritterControl</b> hardware, installed directly inside the figure's control cabinet. Acting as the main brain, it manages motion, timing, feedback, and communication across the entire figure. Developed fully in-house, it interfaces with integrated drive actuators, pneumatics, industrial equipment, sensors, effects, and show-control infrastructure — a flexible foundation for virtually any animated figure.</> },
-          { h: 'Performance monitoring.', p: <>With <b>CritterControl Center</b>, operators monitor the status and performance of characters from a central location and, if desired, remotely from anywhere in the world. The platform surfaces character health, behaviour, and maintenance needs before they become failures. Remote connectivity is always configured to the privacy requirements of the park or operator.</> },
-        ]}
-        visual={<ControlVisual />}
-      />
-
-      {/* 06 · ANIMATION */}
-      <Section
-        flip
-        id="animation"
-        num="06"
-        chapter="Chapter 06 · Animation"
-        title="Choreography"
-        em="in code."
-        beats={[
-          { h: 'Animation without limits.', p: <>Characters are animated using our <b>CritterControl Animation Tool</b>, a software environment designed specifically for animatronics. It lets us craft detailed performances with precise control over motion, timing, and synchronization — and supports hundreds of animations per character, so operators can even create their own.</> },
-          { h: 'Control to the finest detail.', p: <>CritterControl lets us prepare performances with precise control over motion curves, keyframes, interpolation, timing, synchronization, triggers, and show sequencing. Using a real-time 3D workflow, we preview, refine, and adjust performances directly around the intended movement of the figure — before and during integration.</> },
-        ]}
-        visual={<MotionGraphEditor />}
-      />
-
-      {/* 07 · FINISHING */}
-      <FinishingSection
-        beats={[
-          { h: 'From a machine to a being.', p: <>The finishing stage is where the mechanical figure becomes a believable character. Rigid shells define the silhouette, proportions, and fine details while integrating carefully around the internal structure. All shells are developed digitally over the validated mechanical assembly — so clearances, movement ranges, and interactions are verified before fabrication, whether through reinforced 3D printing, fiberglass moulding, or both.</> },
-          { h: 'Flexible skins.', p: <>Flexible materials are used where a more organic appearance or movement is required — faces, necks, hands, and transition zones. Silicone skins, artificial fur, fabrics, and costume elements are all designed around the motion of the figure itself, balancing expression, durability, and serviceability from the earliest stages.</> },
-          { h: 'Built for operation and maintenance.', p: <>A finished character should look convincing on opening day and stay that way for years. Coatings, paint systems, and finishing materials are selected for the intended environment — indoor, outdoor, humid, or high-wear — while removable panels and hidden access points keep it maintainable.</> },
-        ]}
-      />
+      {/* 07 · FINISHING — full-bleed film instead of the split layout */}
+      <FinishingSection beats={SECTIONS[SECTIONS.length - 1].beats} />
 
       {/* CONTACT */}
       <Contact />
@@ -1245,20 +1166,6 @@ function Home() {
     </>
   );
 }
-
-// Order interleaves landscape/portrait shots so the masonry columns balance.
-// `card: true` frames the piece on a cream card (concept art / drawings),
-// mixing light tiles into the dark gallery like the reference.
-const PROJECTS = [
-  { img: 'octopus-hero.png', name: 'Joey', cat: 'Queue-line character' },
-  { img: 'peek-animatronic.png', name: 'The Guardian', cat: 'Full-body figure' },
-  { img: 'vulkan-concept.png', name: 'Vulkan', cat: 'Show · finale figure', card: true },
-  { img: 'vulkan-skeleton.png', name: 'Vulkan Endoskeleton', cat: 'Mechanical engineering' },
-  { img: 'joey-front.png', name: 'Joey · Finish', cat: 'Paint & silicone' },
-  { img: 'cc-rack-open.png', name: 'CritterControl', cat: 'Show control hardware' },
-  { img: 'mech-analysis-joint.png', name: 'Range of Motion', cat: 'Kinematic analysis', card: true },
-  { img: 'mw-routing.png', name: 'Drive & Wiring', cat: 'Integrated actuation', card: true },
-];
 
 // ThemedMotion's orange motion chevrons — two open angular strokes vectorized
 // from the supplied artwork (round caps/joins via CSS). Inline SVG so it stays
@@ -1272,7 +1179,11 @@ function MotionMark({ className }) {
   );
 }
 
+// Tiles come from the `work.projects` list (schema.js): order interleaves
+// landscape/portrait shots so the masonry columns balance, and `card` frames a
+// piece on a cream card (concept art / drawings) among the dark tiles.
 function Projects() {
+  const projects = useList('work.projects');
   useReveal();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1283,37 +1194,37 @@ function Projects() {
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
             <MotionMark className="work-mark" />
-            <h1>Work<span className="dot">.</span></h1>
+            <h1><T k="work.title" /><span className="dot">.</span></h1>
           </div>
-          <p className="head-sub">
-            Characters, show figures and custom show-action mechanisms — designed,
-            engineered and built end to end in our studio for theme parks, museums
-            and brand experiences around the world.
-          </p>
+          <T
+            as="p"
+            className="head-sub"
+            k="work.sub"
+          />
           <div className="portfolio-tags">
-            <span>Theme parks</span>
-            <span>Museums</span>
-            <span>Brand experiences</span>
-            <span>Live shows</span>
+            <T k="work.tag1" />
+            <T k="work.tag2" />
+            <T k="work.tag3" />
+            <T k="work.tag4" />
           </div>
         </div>
       </header>
 
       <section className="portfolio">
         <div className="portfolio-grid">
-          {PROJECTS.map((p, i) => (
+          {projects.map((p, i) => (
             <figure
-              key={p.img}
+              key={p.id}
               className={'proj-tile reveal' + (p.card ? ' proj-card' : '') + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '')}
               data-index={String(i + 1).padStart(2, '0')}
-              aria-label={`${p.name} — ${p.cat}`}
+              aria-label={`${plainText(p.name)} — ${plainText(p.cat)}`}
             >
               <div className="proj-media">
-                <img src={`assets/${p.img}`} alt={p.name} loading="lazy" />
+                {p.img && <img src={p.img} alt={plainText(p.name)} loading="lazy" />}
               </div>
               <figcaption className="proj-meta">
-                <span className="proj-cat">{p.cat}</span>
-                <span className="proj-name">{p.name}</span>
+                <T className="proj-cat" list="work.projects" id={p.id} f="cat" />
+                <T className="proj-name" list="work.projects" id={p.id} f="name" />
               </figcaption>
             </figure>
           ))}
@@ -1334,20 +1245,10 @@ function Projects() {
 // Auto-scrolling photo "reel" — a full-bleed filmstrip. Images are duplicated
 // so the marquee loops seamlessly; it pauses on hover and stops for users who
 // prefer reduced motion (becoming a horizontally scrollable strip instead).
-// `reels` is a list of [dir, count] — one or more source folders shown as a
-// single continuous strip. Light thumbnails drive the reel; the full-size
-// images feed the lightbox.
-function PhotoReel({ reels, reverse, onOpen }) {
-  const pad = (i) => String(i + 1).padStart(2, '0');
-  const items = [];
-  for (const [dir, count] of reels) {
-    for (let i = 0; i < count; i++) {
-      items.push({
-        full: `assets/history/${dir}/${pad(i)}.jpg`,
-        thumb: `assets/history/${dir}/thumb/${pad(i)}.jpg`,
-      });
-    }
-  }
+// `photos` is the editable `history.photos` list: light thumbnails drive the
+// reel; the full-size images feed the lightbox.
+function PhotoReel({ photos, reverse, onOpen }) {
+  const items = photos.filter((it) => it.full);
   const full = items.map((it) => it.full);
   const total = items.length;
   const wrapRef = useRef(null);
@@ -1437,39 +1338,17 @@ function Lightbox({ images, index, onClose, onNav }) {
 
 // A piece of historical footage — muted, auto-looping (reuses LoopVideo, which
 // lazy-loads and restarts the clip when it scrolls into view).
-function HistoryFilm({ name }) {
+function HistoryFilm({ video, poster }) {
   return (
     <figure className="history-film reveal">
-      <LoopVideo
-        className="history-film-video"
-        src={`assets/history/${name}.mp4`}
-        poster={`assets/history/${name}-poster.jpg`}
-      />
+      <LoopVideo className="history-film-video" src={video} poster={poster || undefined} />
     </figure>
   );
 }
 
-const HISTORY_STORY = [
-  { p: "Back then, motion was already part of who we were. At P&P Projects, we believed that a themed environment should do more than look beautiful. It should breathe. It should surprise. It should tell stories that people remember for years to come." },
-  { film: 'footage1' },
-  { p: "At a time when animatronics were still rare in Europe, we were already designing and building mechanical characters that captivated audiences. Those early characters helped shape what themed entertainment would become, making us one of the pioneers of animatronics." },
-  { p: "Over the decades, our moving creations found homes in theme parks, museums, attractions and experiences across the world. Some of the very first characters we built are still performing today, more than thirty years after they were installed." },
-  { reels: [['reel1', 19], ['reel2', 25]] },
-  { p: "Motion has always been woven into the fabric of our company. Sometimes it was a single moving prop hidden within a larger attraction. Others, it was the centrepiece that brought an entire story to life. Every project taught us something new. Every installation added another chapter to our journey." },
-  { p: "As P&P Projects grew, so did our team. New buildings were built. New disciplines joined the team. Artists, engineers, programmers, sculptors, electricians, decorators, project managers and more came together under one roof, each contributing their own craft to create unforgettable experiences." },
-  { film: 'footage2' },
-  { lead: true, p: "And our curiosity never stopped..." },
-  { p: "In 2019, born from the ideas of our biggest dreamers, we began designing Mormel: A fully articulated character with more than 23 axes of motion. Mormel was more than a new animatronic. It challenged everything we thought we knew about motion. It pushed us to rethink how characters should move, how they should be maintained, and how technology could better serve storytellers." },
-  { lead: true, p: "As development finalized in 2023, one thing became increasingly clear: motion needed its own home." },
-  { p: "That realization became ThemedMotion, a new division within our company dedicated exclusively to motion innovation which was presented in IAAPA Europe." },
-  { p: "From the very beginning, we worked side by side with Europe's leading theme parks and listened carefully to operators, maintenance technicians, creatives and attraction owners from around the world. Their experiences became our blueprint. They told us where traditional animatronics fell short: maintenance that consumed too much time, lack of diagnostics, difficult programming, expensive ownership, and technology that often restricted creative freedom instead of potentializing it." },
-  { p: "Based on their experiences, we reimagined the entire ecosystem and process around animatronics. We realized that the technology available on the market no longer met the expectations of modern attractions. Rather than waiting for someone else to solve those challenges, we decided to build the technology ourselves." },
-  { p: "Remote monitoring. Intelligent diagnostics. Simplified maintenance. Flexible creative workflows. Reliable performance. Every innovation was developed with one goal in mind: giving storytellers the freedom to focus on creating unforgettable experiences, while making ownership easier throughout the lifetime of every character." },
-  { p: "Today, ThemedMotion combines more than four decades of experience with a fresh vision for the future. Although our technology has evolved beyond anything we imagined in the 1980s, our main goal remains unchanged: creating experiences that make people smile, laugh, wonder and believe." },
-  { lead: true, p: "Because there is no greater complement than guests believing in a character and not thinking of the technology behind it." },
-];
-
 function History() {
+  const story = useList('history.blocks');
+  const photos = useList('history.photos');
   useReveal();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1491,15 +1370,15 @@ function History() {
       buf = [];
     }
   };
-  HISTORY_STORY.forEach((b, i) => {
-    if (b.reels) {
-      flushProse(i);
-      blocks.push(<PhotoReel key={i} reels={b.reels} reverse={b.reverse} onOpen={openLb} />);
-    } else if (b.film) {
-      flushProse(i);
-      blocks.push(<HistoryFilm key={i} name={b.film} />);
+  story.forEach((b) => {
+    if (b.type === 'reel') {
+      flushProse(b.id);
+      if (photos.length) blocks.push(<PhotoReel key={b.id} photos={photos} onOpen={openLb} />);
+    } else if (b.type === 'film') {
+      flushProse(b.id);
+      if (b.video) blocks.push(<HistoryFilm key={b.id} video={b.video} poster={b.poster} />);
     } else {
-      buf.push(<p key={i} className={b.lead ? 'lead' : undefined}>{b.p}</p>);
+      buf.push(<T as="p" key={b.id} className={b.type === 'lead' ? 'lead' : undefined} list="history.blocks" id={b.id} f="text" />);
     }
   });
   flushProse('end');
@@ -1510,11 +1389,9 @@ function History() {
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
             <MotionMark className="work-mark" />
-            <h1>History<span className="dot">.</span></h1>
+            <h1><T k="history.title" /><span className="dot">.</span></h1>
           </div>
-          <p className="head-sub">
-            Our story began in 1989, long before the name ThemedMotion ever existed.
-          </p>
+          <T as="p" className="head-sub" k="history.sub" />
         </div>
       </header>
 
@@ -1530,8 +1407,16 @@ function History() {
 
 export default function App() {
   const route = useHashRoute();
-  const onProjects = route === '#/projects';
-  const onHistory = route === '#/history';
+  const { editing } = useContent();
+  // A hidden page behaves as if it didn't exist — except for a logged-in editor,
+  // who can still open it to work on it before switching it on.
+  const showWork = useFlag('page.work') || editing;
+  const showHistory = useFlag('page.history') || editing;
+  const onProjects = route === '#/projects' && showWork;
+  const onHistory = route === '#/history' && showHistory;
+  const onAdmin = route === '#/admin';
+  const title = usePlain('seo.title');
+  useEffect(() => { if (title) document.title = title; }, [title]);
   // Don't let the browser restore a previous scroll position on first load —
   // otherwise the deck can open part-way down (at section 01) instead of the hero.
   useEffect(() => {
@@ -1541,16 +1426,23 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('route-projects', onProjects);
     document.documentElement.classList.toggle('route-history', onHistory);
+    document.documentElement.classList.toggle('route-admin', onAdmin);
     return () => {
       document.documentElement.classList.remove('route-projects');
       document.documentElement.classList.remove('route-history');
+      document.documentElement.classList.remove('route-admin');
     };
-  }, [onProjects, onHistory]);
+  }, [onProjects, onHistory, onAdmin]);
+  // Login + dashboard (content, media, users) — a bare page, no site chrome.
+  if (onAdmin) return <Suspense fallback={null}><AdminApp /></Suspense>;
+  // What the chrome treats as the current page: a hidden page counts as home.
+  const shown = onProjects ? '#/projects' : onHistory ? '#/history' : '';
   return (
     <>
-      <Nav route={route} />
-      <SideNav route={route} />
+      <Nav route={shown} />
+      <SideNav route={shown} />
       {onProjects ? <Projects /> : onHistory ? <History /> : <Home />}
+      <AdminBar />
     </>
   );
 }

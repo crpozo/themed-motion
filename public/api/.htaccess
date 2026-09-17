@@ -1,0 +1,10 @@
+# Site-admin API. The helper, the users file and the PHP settings are never served.
+<FilesMatch "^(_lib\.php|config\.php|\.user\.ini)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

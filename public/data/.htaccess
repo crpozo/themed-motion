@@ -1,0 +1,7 @@
+# content.json (the saved text edits) is created on the server by api/save.php.
+# Always revalidate it so visitors see an edit as soon as it is saved.
+<IfModule mod_headers.c>
+  <FilesMatch "\.json$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

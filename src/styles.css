@@ -2738,3 +2738,104 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   .contact .field textarea { min-height: 42px; }
   .contact .field { gap: 4px; }
 }
+
+/* ==== Inline editing (src/content.jsx) ===================================
+   Only active for a logged-in user: <html class="tm-editing">. Visitors never
+   get any of this applied. The dashboard's own styles live in src/admin/. */
+.tm-editing .tm-ed {
+  cursor: text;
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  outline: 1px dashed transparent;
+  outline-offset: 3px;
+  border-radius: 3px;
+  transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+.tm-editing .tm-ed:hover { outline-color: var(--accent); }
+.tm-editing .tm-ed:focus {
+  outline: 2px solid var(--accent);
+  background-color: rgba(242, 107, 31, 0.10);
+}
+/* Edited but not saved yet. */
+.tm-editing .tm-ed-dirty { box-shadow: -4px 0 0 0 var(--accent); }
+/* Keep blanked fields findable. */
+.tm-editing .tm-ed:empty { display: inline-block; min-width: 3.5em; min-height: 1em; outline-color: var(--accent); }
+.tm-editing .tm-ed:empty::before { content: "empty"; opacity: 0.45; font-style: italic; }
+.tm-editing body { padding-bottom: 76px; }
+
+.tm-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(17, 17, 17, 0.94);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.3;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.tm-bar-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.tm-bar-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tm-bar-hint { color: rgba(255, 255, 255, 0.78); min-width: 11.5em; }
+.tm-bar-pages, .tm-bar-actions { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.tm-bar-pages { padding: 0 12px; border-inline: 1px solid rgba(255, 255, 255, 0.18); }
+.tm-bar button {
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.tm-bar button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+.tm-bar button:disabled { opacity: 0.38; cursor: default; }
+.tm-bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tm-bar .tm-bar-save { background: var(--accent); border-color: var(--accent); }
+.tm-bar .tm-bar-save:hover:not(:disabled) { background: var(--accent-2); border-color: var(--accent-2); }
+.tm-bar-pages button { border-color: transparent; color: rgba(255, 255, 255, 0.8); }
+.tm-bar .tm-bar-min { padding: 7px 10px; border-color: transparent; }
+.tm-bar.tm-bar-mini {
+  left: 16px;
+  transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 8px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tm-bar-count { color: #ffd2b8; }
+.tm-bar-status { margin-top: 8px; padding: 0 4px; font-weight: 500; }
+.tm-bar-status.is-ok { color: #7ee2a8; }
+.tm-bar-status.is-err { color: #ffb4a8; }
+@media (max-width: 720px) {
+  .tm-bar { left: 12px; right: 12px; bottom: 12px; transform: none; width: auto; }
+  .tm-bar.tm-bar-mini { right: auto; }
+  .tm-bar-hint { min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tm-bar-pages, .tm-bar-actions { flex: 1 1 100%; }
+  .tm-bar-pages { padding: 0; border: 0; }
+  .tm-bar-actions .tm-bar-min { margin-left: auto; }
+  .tm-editing body { padding-bottom: 140px; }
+}
