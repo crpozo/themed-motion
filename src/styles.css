@@ -2190,8 +2190,8 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
 .sec.flip .sec-panel { order: 1; }
 .sec-panel {
   display: flex; flex-direction: column; justify-content: flex-start;
-  gap: clamp(16px, 2.4vh, 30px);
-  padding: calc(var(--nav-h) + clamp(6px, 1.4vh, 18px)) clamp(28px, 4vw, 60px) clamp(24px, 3vh, 40px);
+  gap: clamp(12px, 2vh, 24px);
+  padding: calc(var(--nav-h) + 2px) clamp(28px, 4vw, 60px) clamp(24px, 3vh, 40px);
   min-height: 100vh;
 }
 .sec-num {
@@ -2199,7 +2199,7 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   font-family: var(--serif); font-weight: 800;
   font-size: clamp(44px, 4.6vw, 68px); line-height: 1;
   color: var(--accent); letter-spacing: -0.02em;
-  margin-bottom: clamp(10px, 1.4vh, 18px);
+  margin-bottom: clamp(6px, 1vh, 12px);
 }
 .sec-num span {
   font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.18em;
@@ -2239,7 +2239,8 @@ html.route-history .portfolio-head h1 { font-size: clamp(56px, 12vw, 180px); }
   font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 1.1vw + 0.5vh, 25px);
   text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 9px; color: var(--ink);
 }
-.sec .beat-body p { margin: 0; max-width: none; font-size: clamp(17px, 0.85vw + 0.5vh, 19.5px); line-height: 1.6; color: var(--ink-dim); text-wrap: pretty; }
+.sec .beat-body p { margin: 0; max-width: 72ch; font-size: clamp(17px, 0.85vw + 0.5vh, 19.5px); line-height: 1.6; color: var(--ink-dim); text-wrap: pretty; }
+.sec.few .beat-body p { max-width: 60ch; }
 .sec .beat-body p b { color: var(--ink); font-weight: 600; }
 
 @media (max-width: 900px) {

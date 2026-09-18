@@ -500,8 +500,10 @@ function VideoStage({ src, tag }) {
 // one column, the visual fills the other — sized so the whole section reads in a
 // single viewport (per the dossier's "see everything at once" note).
 function Section({ id, num, beats, visual, flip, mark }) {
+  // Two-block sections get a slightly shorter line so the copy fills the panel
+  // instead of running wide across it.
   return (
-    <section className={'sec' + (flip ? ' flip' : '')} id={id}>
+    <section className={'sec' + (flip ? ' flip' : '') + (beats.length <= 2 ? ' few' : '')} id={id}>
       <div className="sec-visual">{visual}</div>
       <div className="sec-panel">
         <div className={'sec-head reveal' + (mark ? ' has-mark' : '')}>
