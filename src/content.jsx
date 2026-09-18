@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FIELDS, isMediaPath } from './schema.js';
+import { demoContent, demoUpload, isDemoMedia, resolveDemoMedia } from './demo.js';
 import {
   API, CONTENT_URL, ContentCtx, DEFAULTS, PARTS, api, cleanHtml, defList, defText, emptyDoc, fieldsOf, flag, has, normalizeDoc, same, useContent,
 } from './content-core.js';
@@ -20,6 +21,7 @@ export function ContentProvider({ children }) {
   const [saving, setSaving] = useState(false);
   const editing = session !== null;
   const csrf = session?.csrf ?? null;
+  const demo = !!session?.demo; // in-browser stand-in backend (static hosts)
 
   // Load saved overrides before first paint so edited copy never flashes the
   // default. Capped: a slow/absent file must not hold the page hostage.
@@ -31,7 +33,8 @@ export function ContentProvider({ children }) {
       .catch(() => null)
       .then((json) => {
         if (!alive) return;
-        setDoc(normalizeDoc(json));
+        // No saved file on this host → whatever the demo admin saved in this browser.
+        setDoc(normalizeDoc(json ?? demoContent()));
         setReady(true);
       });
     return () => { alive = false; clearTimeout(timer); };
@@ -40,7 +43,7 @@ export function ContentProvider({ children }) {
   const adopt = useCallback((data) => {
     if (data?.authed && data.csrf && data.user) {
       flag.set(true);
-      setSession({ csrf: data.csrf, user: data.user, maxUpload: data.maxUpload || 0 });
+      setSession({ csrf: data.csrf, user: data.user, maxUpload: data.maxUpload || 0, demo: !!data.demo });
       return true;
     }
     return false;
@@ -55,14 +58,14 @@ export function ContentProvider({ children }) {
 
   // PHP sessions expire after ~24 idle minutes — keep it warm while editing.
   useEffect(() => {
-    if (!editing) return;
+    if (!editing || demo) return;
     const t = setInterval(() => {
       api('session.php').then(({ ok, data }) => {
         if (ok && !data.authed) setStatus({ kind: 'err', msg: 'Your session expired. Open #/admin in a new tab, log in, then save again.' });
       });
     }, 240000);
     return () => clearInterval(t);
-  }, [editing]);
+  }, [editing, demo]);
 
   const login = useCallback(async (username, password) => {
     const { ok, status: code, data } = await api('login.php', { method: 'POST', body: { username, password } });
@@ -83,8 +86,13 @@ export function ContentProvider({ children }) {
   // ---- reading -----------------------------------------------------------------
   const get = useCallback((part, k) => {
     const def = DEFAULTS[part](k);
-    if (has(draft[part], k)) return draft[part][k] === null ? def : draft[part][k];
-    return has(doc[part], k) ? doc[part][k] : def;
+    const v = has(draft[part], k) ? (draft[part][k] === null ? def : draft[part][k]) : has(doc[part], k) ? doc[part][k] : def;
+    // Demo uploads live in this browser: swap their fake paths for the stored picture.
+    if (part === 'media') return resolveDemoMedia(v);
+    if (part === 'lists' && v.some((it) => Object.values(it).some(isDemoMedia))) {
+      return v.map((it) => Object.fromEntries(Object.entries(it).map(([f, x]) => [f, resolveDemoMedia(x)])));
+    }
+    return v;
   }, [doc, draft]);
   const getSaved = useCallback((part, k) => (has(doc[part], k) ? doc[part][k] : DEFAULTS[part](k)), [doc]);
 
@@ -128,7 +136,7 @@ export function ContentProvider({ children }) {
     if (ok && data.doc) {
       setDoc(normalizeDoc(data.doc));
       setDraft(emptyDoc());
-      setStatus({ kind: 'ok', msg: 'Saved — live for every visitor.' });
+      setStatus({ kind: 'ok', msg: demo ? 'Saved in this browser (demo) — the real website is unchanged.' : 'Saved — live for every visitor.' });
       return true;
     }
     setStatus({
@@ -138,7 +146,7 @@ export function ContentProvider({ children }) {
         : data?.error || 'Could not save. Check your connection and try again.',
     });
     return false;
-  }, [dirty, saving, doc, draft, csrf]);
+  }, [dirty, saving, doc, draft, csrf, demo]);
 
   const discard = useCallback(() => {
     setDraft(emptyDoc());
@@ -153,6 +161,7 @@ export function ContentProvider({ children }) {
 
   // Upload a picture/clip; resolves to { path, thumb? } stored under data/uploads/.
   const upload = useCallback((file, { thumb = false, onProgress } = {}) => new Promise((resolve, reject) => {
+    if (demo) { demoUpload(file).then(resolve, reject); return; }
     const xhr = new XMLHttpRequest();
     const form = new FormData();
     form.append('file', file);
@@ -170,7 +179,7 @@ export function ContentProvider({ children }) {
       else reject(new Error(data?.error || 'Upload failed.'));
     };
     xhr.send(form);
-  }), [csrf]);
+  }), [csrf, demo]);
 
   const call = useCallback((path, body) => api(path, body ? { method: 'POST', body, csrf } : { csrf }), [csrf]);
 
@@ -220,11 +229,11 @@ export function ContentProvider({ children }) {
   }, [dirty]);
 
   const value = useMemo(() => ({
-    editing, user: session?.user ?? null, maxUpload: session?.maxUpload ?? 0,
+    editing, demo, user: session?.user ?? null, maxUpload: session?.maxUpload ?? 0,
     doc, draft, get, getSaved, set, reset,
     dirty, saving, status, setStatus, save, discard,
     login, logout, upload, call, setFocused, focused, resetFocused,
-  }), [editing, session, doc, draft, get, getSaved, set, reset, dirty, saving, status, save, discard, login, logout, upload, call, setFocused, focused, resetFocused]);
+  }), [editing, demo, session, doc, draft, get, getSaved, set, reset, dirty, saving, status, save, discard, login, logout, upload, call, setFocused, focused, resetFocused]);
 
   return <ContentCtx.Provider value={value}>{ready ? children : null}</ContentCtx.Provider>;
 }
@@ -314,7 +323,7 @@ export function AdminBar() {
   if (mini) {
     return (
       <button type="button" className="tm-bar tm-bar-mini" onMouseDown={keepFocus} onClick={() => setMini(false)} aria-label="Show the editor bar">
-        <span className="tm-bar-badge">Edit mode</span>
+        <span className="tm-bar-badge">{c.demo ? 'Demo' : 'Edit mode'}</span>
         {dirty > 0 && <span className="tm-bar-count">{dirty} unsaved</span>}
         <span aria-hidden="true">▴</span>
       </button>
@@ -323,7 +332,7 @@ export function AdminBar() {
   return (
     <div className="tm-bar" role="region" aria-label="Site editor">
       <div className="tm-bar-row">
-        <span className="tm-bar-badge">Edit mode</span>
+        <span className="tm-bar-badge">{c.demo ? 'Demo' : 'Edit mode'}</span>
         <span className="tm-bar-hint">
           {dirty ? `${dirty} unsaved change${dirty === 1 ? '' : 's'}` : 'Click any text to edit it'}
         </span>

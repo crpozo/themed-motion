@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { T } from '../content.jsx';
 import { useContent, fieldsOf, plainText } from '../content-core.js';
 import { GROUPS, LISTS } from '../schema.js';
+import { DEMO_LOGIN } from '../demo.js';
 import './admin.css';
 
 // ---- `#/admin` ---------------------------------------------------------------
@@ -18,6 +19,7 @@ export default function AdminApp() {
 function Login() {
   const c = useContent();
   const [state, setState] = useState('checking'); // checking | unavailable | setup | form
+  const [demo, setDemo] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const user = useRef(null);
@@ -29,7 +31,7 @@ function Login() {
       if (!alive) return;
       if (!ok) setState('unavailable');
       else if (!data.configured) setState('setup');
-      else setState('form');
+      else { setDemo(!!data.demo); setState('form'); }
     });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,6 +60,13 @@ function Login() {
         )}
         {state === 'setup' && (
           <p className="adm-note">No administrator yet. <a href="api/setup.php">Create the first one here</a>, then come back to log in.</p>
+        )}
+        {state === 'form' && demo && (
+          <p className="adm-demo-note">
+            <b>Demo.</b> This copy of the site has no server, so the admin runs inside your browser: log in with
+            username <code>{DEMO_LOGIN.username}</code> and password <code>{DEMO_LOGIN.password}</code>. Everything works, but changes are saved
+            only in this browser — not on the real website.
+          </p>
         )}
         {state === 'form' && (
           <form onSubmit={submit}>
@@ -88,6 +97,7 @@ function Dashboard() {
 
   return (
     <div className="adm">
+      {c.demo && <div className="adm-demo-bar">Demo mode — changes are saved only in this browser, not on the real website.</div>}
       <header className="adm-top">
         <img className="adm-top-logo" src="assets/themedmotion-logo.png" alt="ThemedMotion" />
         <nav className="adm-tabs" aria-label="Admin sections">
@@ -112,7 +122,7 @@ function Dashboard() {
           {c.dirty > 0 && (
             <span className="adm-save-actions">
               <button type="button" className="adm-btn adm-btn-ghost" onClick={c.discard} disabled={c.saving}>Discard</button>
-              <button type="button" className="adm-btn adm-btn-primary" onClick={c.save} disabled={c.saving}>{c.saving ? 'Saving…' : 'Save & publish'}</button>
+              <button type="button" className="adm-btn adm-btn-primary" onClick={c.save} disabled={c.saving}>{c.saving ? 'Saving…' : c.demo ? 'Save (demo)' : 'Save & publish'}</button>
             </span>
           )}
         </div>

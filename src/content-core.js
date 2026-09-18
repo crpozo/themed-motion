@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import { FIELDS, LISTS, isMediaPath } from './schema.js';
+import { demoApi } from './demo.js';
 
 // ---- Editable site content · core ---------------------------------------------
 // Helpers, defaults, the context and the reading hooks. The components
@@ -153,7 +154,12 @@ export function normalizeDoc(json) {
 export const ContentCtx = createContext(null);
 export const useContent = () => useContext(ContentCtx);
 
+// Once a host proves it has no PHP (the first call comes back as a plain file),
+// every later call goes straight to the demo backend — static servers answer
+// POST with 405/501, which must not read as "wrong password".
+let demoMode = false;
 export async function api(path, { method = 'GET', body, csrf } = {}) {
+  if (demoMode) return demoApi(path, { method, body });
   const headers = { Accept: 'application/json' };
   if (body) headers['Content-Type'] = 'application/json';
   if (csrf) headers['X-CSRF-Token'] = csrf;
@@ -164,9 +170,14 @@ export async function api(path, { method = 'GET', body, csrf } = {}) {
     credentials: 'same-origin',
     cache: 'no-store',
   });
-  // On a static host (GitHub Pages, vite dev) the .php file comes back as
-  // plain text — treat anything that isn't JSON as "no API here".
+  // On a static host (GitHub Pages, vite dev) the .php file comes back as a
+  // plain file (200, not JSON) or is missing (404): hand over to the in-browser
+  // demo backend. A real PHP error (5xx HTML page) is NOT treated as demo.
   const data = await res.json().catch(() => null);
+  if (data === null && (res.ok || [404, 405, 501].includes(res.status))) {
+    demoMode = true;
+    return demoApi(path, { method, body });
+  }
   return { status: res.status, ok: res.ok && data !== null, data };
 }
 

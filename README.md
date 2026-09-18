@@ -34,9 +34,12 @@ Production is `themedmotion.com` (cPanel hosting): upload the contents of
 
 ## Site admin (content + users, from the browser)
 
-The live site has an admin at `themedmotion.com/#/admin`. It needs PHP, so it
-only works on the hosting — on GitHub Pages / `npm run dev` the site simply
-shows the defaults.
+The live site has an admin at `themedmotion.com/admin`. Saving for real needs
+the PHP hosting. On a host without PHP (GitHub Pages, `npm run dev`) the admin
+runs in **demo mode** (`src/demo.js`): log in with `demo` / `demo`, everything
+works, but changes live only in that browser's localStorage. Demo mode switches
+on by itself when `api/*.php` comes back as a plain file instead of JSON — a
+real PHP error never triggers it.
 
 - **Content** — everything grouped by page and section: copy, pictures, videos,
   lists (Work projects, the History story blocks and photo reel) and switches
