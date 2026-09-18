@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { T } from '../content.jsx';
 import { useContent, fieldsOf, plainText } from '../content-core.js';
 import { GROUPS, LISTS } from '../schema.js';
-import { DEMO_LOGIN } from '../demo.js';
 import './admin.css';
 
 // ---- `#/admin` ---------------------------------------------------------------
@@ -19,7 +18,6 @@ export default function AdminApp() {
 function Login() {
   const c = useContent();
   const [state, setState] = useState('checking'); // checking | unavailable | setup | form
-  const [demo, setDemo] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const user = useRef(null);
@@ -31,7 +29,7 @@ function Login() {
       if (!alive) return;
       if (!ok) setState('unavailable');
       else if (!data.configured) setState('setup');
-      else { setDemo(!!data.demo); setState('form'); }
+      else setState('form');
     });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,13 +58,6 @@ function Login() {
         )}
         {state === 'setup' && (
           <p className="adm-note">No administrator yet. <a href="api/setup.php">Create the first one here</a>, then come back to log in.</p>
-        )}
-        {state === 'form' && demo && (
-          <p className="adm-demo-note">
-            <b>Demo.</b> This copy of the site has no server, so the admin runs inside your browser: log in with
-            username <code>{DEMO_LOGIN.username}</code> and password <code>{DEMO_LOGIN.password}</code>. Everything works, but changes are saved
-            only in this browser — not on the real website.
-          </p>
         )}
         {state === 'form' && (
           <form onSubmit={submit}>

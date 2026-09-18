@@ -194,5 +194,3 @@ html.route-admin body { background: var(--bg-2); padding-bottom: 0; }
 /* ---- demo mode (static hosts) ---- */
 .adm-demo-bar { position: sticky; top: 0; z-index: 21; padding: 8px 16px; background: #fff1e8; color: var(--accent-2); font-size: 13px; font-weight: 600; text-align: center; border-bottom: 1px solid #f6c9ae; }
 .adm-demo-bar + .adm-top { top: 34px; }
-.adm-demo-note { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; background: #fff1e8; color: #8a4b00; font-size: 14px; line-height: 1.5; }
-.adm-demo-note code { padding: 1px 6px; border-radius: 4px; background: #fff; font-family: var(--mono); font-size: 13px; }
