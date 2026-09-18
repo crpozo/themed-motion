@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { SoftSketch } from './Sketches.jsx';
 import { T, AdminBar } from './content.jsx';
-import { useContent, useMedia, useFlag, useList, useLink, usePlain, plainText } from './content-core.js';
-import { SECTIONS } from './schema.js';
+import { useContent, useMedia, useFlag, useList, useLink, usePlain, useChoice, plainText } from './content-core.js';
+import { SECTIONS, FONTS } from './schema.js';
 import ukkieModelSvg from './ukkie-simplified.svg?raw';
 
 function useReveal() {
@@ -19,6 +19,34 @@ function useReveal() {
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+}
+
+// Typefaces picked in the admin: load the family from Google Fonts (the default
+// pair already ships in index.html) and point the site's font variables at it.
+const FONT_VARS = { heading: '--serif', body: '--sans' };
+const FONT_BASE = {}; // the stacks from styles.css, read once before any override
+function useFonts() {
+  const heading = useChoice('font.heading');
+  const body = useChoice('font.body');
+  useEffect(() => {
+    for (const [set, key] of [['heading', heading], ['body', body]]) {
+      const f = FONTS[set][key];
+      const id = 'tm-font-' + set;
+      let link = document.getElementById(id);
+      if (f.gf && !link) {
+        link = Object.assign(document.createElement('link'), { id, rel: 'stylesheet' });
+        document.head.appendChild(link);
+      }
+      if (link) {
+        if (f.gf) link.href = 'https://fonts.googleapis.com/css2?family=' + f.gf + '&display=swap';
+        else link.remove();
+      }
+      // The default keeps the stack from styles.css; a pick replaces its first family.
+      if (!FONT_BASE[set]) FONT_BASE[set] = getComputedStyle(document.documentElement).getPropertyValue(FONT_VARS[set]).replace(/^\s*"?[^",]+"?,\s*/, '');
+      if (f.gf) document.documentElement.style.setProperty(FONT_VARS[set], f.family + ', ' + FONT_BASE[set]);
+      else document.documentElement.style.removeProperty(FONT_VARS[set]);
+    }
+  }, [heading, body]);
 }
 
 // The dashboard (login, content, users) is its own chunk — visitors never load it.
@@ -899,6 +927,24 @@ function scrollToContact(e) {
   }
 }
 
+// Full-bleed invitation between the last chapter and the contact form. The
+// picture is shown blurred, so any shot works as a backdrop.
+function ContactBanner() {
+  const img = useMedia('cta.image');
+  return (
+    <section className="cta-band" id="more">
+      <img className="cta-band-bg" src={img} alt="" aria-hidden="true" />
+      <div className="cta-band-scrim" aria-hidden="true"></div>
+      <div className="cta-band-inner reveal">
+        <T as="h2" k="cta.title" />
+        <a className="cta-band-btn" href="#contact" onClick={scrollToContact}>
+          <T k="cta.button" /> <span className="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 // Shared contact section — rendered identically on Home and Projects, so any
 // edit here reflects on both pages.
 function Contact() {
@@ -982,41 +1028,53 @@ function SiteFooter() {
 }
 
 // ---- Motion Graph Editor: interactive animation-curve editor (Animation §) ----
-const MGE_W = 900, MGE_DUR = 5, MGE_FPS = 30;
+// Five channels, six keyframes each (one per second), eased between keys with
+// a feel of their own. The playhead sweeps and loops by itself; visitors can
+// take over — tap a channel to focus it, drag its diamonds to reshape the
+// curve, drag across the graph to scrub, pause/play, reset.
+const MGE_W = 900, MGE_H = 440, MGE_DUR = 5, MGE_TOP = 22, MGE_SPAN = 396;
+const MGE_EASE = {
+  smooth: (u) => u * u * (3 - 2 * u),                                                // ease in / out
+  hold: (u) => (u < 0.3 ? 0 : u > 0.7 ? 1 : MGE_EASE.smooth((u - 0.3) / 0.4)),      // dwell · move · dwell
+  snap: (u) => (u < 0.5 ? 8 * u ** 4 : 1 - 8 * (1 - u) ** 4),                        // quick flick
+  linear: (u) => u,
+};
 const MGE_CHANNELS = [
-  { key: 'opacity',  name: 'Head Tilt',  color: 'oklch(0.63 0.20 28)',  freq: 1.6,  phase: 0 },
-  { key: 'scale',    name: 'Jaw',        color: 'oklch(0.70 0.15 72)',  freq: 1.3,  phase: 2.1 },
-  { key: 'posx',     name: 'Top Blink',  color: 'oklch(0.60 0.13 175)', freq: 1.85, phase: 4.0 },
-  { key: 'posy',     name: 'R Shoulder', color: 'oklch(0.55 0.16 256)', freq: 0.9,  phase: 1.0 },
-  { key: 'rotation', name: 'L Elbow',    color: 'oklch(0.58 0.19 350)', freq: 2.15, phase: 5.0 },
+  { key: 'opacity',  color: 'oklch(0.63 0.20 28)',  ease: 'smooth', vals: [0.50, 0.80, 0.55, 0.25, 0.60, 0.50] }, // head tilt · slow sway
+  { key: 'scale',    color: 'oklch(0.70 0.15 72)',  ease: 'snap',   vals: [0.08, 0.85, 0.15, 0.70, 0.30, 0.08] }, // jaw · talking
+  { key: 'posx',     color: 'oklch(0.60 0.13 175)', ease: 'snap',   vals: [0.95, 0.95, 0.05, 0.95, 0.95, 0.10] }, // blink
+  { key: 'posy',     color: 'oklch(0.55 0.16 256)', ease: 'hold',   vals: [0.20, 0.20, 0.75, 0.75, 0.40, 0.20] }, // shoulder · hold & move
+  { key: 'rotation', color: 'oklch(0.58 0.19 350)', ease: 'linear', vals: [0.40, 0.15, 0.65, 0.35, 0.90, 0.40] }, // elbow · mechanical
 ];
-const mgeVal = (ch, t) => 0.5 + 0.42 * Math.sin((2 * Math.PI * ch.freq * t) / MGE_DUR + ch.phase);
+const MGE_DEFAULTS = Object.fromEntries(MGE_CHANNELS.map((c) => [c.key, c.vals]));
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const mgeX = (t) => (t / MGE_DUR) * MGE_W;
-const mgeY = (v) => 22 + (1 - v) * 396;
-const mgePath = (ch) => {
-  const N = 260; let d = '';
+const mgeY = (v) => MGE_TOP + (1 - v) * MGE_SPAN;
+const mgeVal = (ch, vals, t) => {
+  const i = Math.min(MGE_DUR - 1, Math.max(0, Math.floor(t)));
+  const a = vals[i], b = vals[i + 1];
+  return a + (b - a) * MGE_EASE[ch.ease](clamp01(t - i));
+};
+const mgePath = (ch, vals) => {
+  const N = 300; let d = '';
   for (let i = 0; i <= N; i++) {
     const t = (i / N) * MGE_DUR;
-    d += (i ? 'L' : 'M') + mgeX(t).toFixed(1) + ' ' + mgeY(mgeVal(ch, t)).toFixed(1) + ' ';
+    d += (i ? 'L' : 'M') + mgeX(t).toFixed(1) + ' ' + mgeY(mgeVal(ch, vals, t)).toFixed(1) + ' ';
   }
   return d.trim();
 };
-// Curves are static — precompute paths, fills and keyframe points once.
-const MGE_DATA = MGE_CHANNELS.map((ch) => ({
-  ...ch,
-  d: mgePath(ch),
-  fill: mgePath(ch) + ` L${MGE_W} ${mgeY(0)} L0 ${mgeY(0)} Z`,
-  keys: [0, 1, 2, 3, 4, 5].map((s) => ({ x: mgeX(s), y: mgeY(mgeVal(ch, s)) })),
-}));
 
-// Non-interactive: the playhead sweeps and loops on its own, and each loop the
-// focus moves to the next channel — a self-running showcase, not a control.
 function MotionGraphEditor() {
+  const [vals, setVals] = useState(MGE_DEFAULTS);
   const [sel, setSel] = useState('posx');
   const [time, setTime] = useState(0);
+  const [playing, setPlaying] = useState(true);
   const [visible, setVisible] = useState(true);
+  const [touched, setTouched] = useState(false); // once the visitor takes over, the focus stops cycling
   const wrapRef = useRef(null);
+  const svgRef = useRef(null);
   const lastRef = useRef(0);
+  const dragRef = useRef(null); // { i } while a diamond is dragged, 'scrub' on the graph, else null
 
   // Pause the loop when the slide is off-screen.
   useEffect(() => {
@@ -1026,9 +1084,9 @@ function MotionGraphEditor() {
     return () => io.disconnect();
   }, []);
 
-  // Playhead sweep (~0.9 u/s); on each loop, focus the next channel.
+  // Playhead sweep (~0.9 u/s); left alone, each loop focuses the next channel.
   useEffect(() => {
-    if (!visible) { lastRef.current = 0; return; }
+    if (!visible || !playing) { lastRef.current = 0; return; }
     let raf;
     const step = (now) => {
       if (!lastRef.current) lastRef.current = now;
@@ -1037,7 +1095,7 @@ function MotionGraphEditor() {
       setTime((t) => {
         const n = t + dt * 0.9;
         if (n >= MGE_DUR) {
-          setSel((cur) => MGE_CHANNELS[(MGE_CHANNELS.findIndex((c) => c.key === cur) + 1) % MGE_CHANNELS.length].key);
+          if (!touched) setSel((cur) => MGE_CHANNELS[(MGE_CHANNELS.findIndex((c) => c.key === cur) + 1) % MGE_CHANNELS.length].key);
           return n - MGE_DUR;
         }
         return n;
@@ -1046,11 +1104,48 @@ function MotionGraphEditor() {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [visible]);
+  }, [visible, playing, touched]);
 
-  const selCh = MGE_DATA.find((c) => c.key === sel);
+  const data = useMemo(() => MGE_CHANNELS.map((ch) => ({
+    ...ch,
+    d: mgePath(ch, vals[ch.key]),
+    keys: vals[ch.key].map((v, s) => ({ x: mgeX(s), y: mgeY(v) })),
+  })), [vals]);
+  const selCh = data.find((c) => c.key === sel);
   const px = mgeX(time);
-  const py = mgeY(mgeVal(selCh, time));
+  const py = mgeY(mgeVal(selCh, vals[sel], time));
+
+  // Pointer → graph units. The SVG is stretched, so each axis maps on its own.
+  const toGraph = (e) => {
+    const box = svgRef.current.getBoundingClientRect();
+    return {
+      t: clamp01((e.clientX - box.left) / box.width) * MGE_DUR,
+      v: clamp01(1 - (((e.clientY - box.top) / box.height) * MGE_H - MGE_TOP) / MGE_SPAN),
+    };
+  };
+  const setKey = (i, v) => setVals((cur) => ({ ...cur, [sel]: cur[sel].map((x, j) => (j === i ? v : x)) }));
+  const onDown = (e) => {
+    const kf = e.target.closest ? e.target.closest('[data-kf]') : null;
+    setTouched(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    if (kf) {
+      dragRef.current = { i: +kf.dataset.kf };
+      setKey(dragRef.current.i, toGraph(e).v);
+    } else {
+      dragRef.current = 'scrub';
+      setPlaying(false);
+      setTime(toGraph(e).t);
+    }
+  };
+  const onMove = (e) => {
+    if (!dragRef.current) return;
+    const g = toGraph(e);
+    if (dragRef.current === 'scrub') setTime(g.t);
+    else setKey(dragRef.current.i, g.v);
+  };
+  const onUp = () => { dragRef.current = null; };
+  const pick = (key) => { setSel(key); setTouched(true); };
+  const reset = () => { setVals(MGE_DEFAULTS); setTouched(false); setPlaying(true); };
 
   return (
     <div className="mge-wrap" ref={wrapRef}>
@@ -1063,37 +1158,60 @@ function MotionGraphEditor() {
           </div>
           <div className="mge-head-r">
             <div className="mge-time">{time.toFixed(2).padStart(5, '0')}s</div>
+            <button type="button" className="mge-btn" onClick={() => { setPlaying((p) => !p); setTouched(true); }} aria-label={playing ? 'Pause' : 'Play'} title={playing ? 'Pause' : 'Play'}>
+              {playing ? '❚❚' : '▶'}
+            </button>
+            <button type="button" className="mge-btn" onClick={reset} aria-label="Reset the curves" title="Reset">↺</button>
           </div>
         </div>
         <div className="mge-body">
           <div className="mge-yaxis">{[100, 75, 50, 25, 0].map((v) => <span key={v}>{v}</span>)}</div>
-          <svg className="mge-svg" viewBox="0 0 900 440" preserveAspectRatio="none" aria-hidden="true">
+          <svg
+            ref={svgRef}
+            className="mge-svg"
+            viewBox={`0 0 ${MGE_W} ${MGE_H}`}
+            preserveAspectRatio="none"
+            role="application"
+            aria-label="Animation curve editor: drag the diamonds to reshape the focused curve"
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onUp}
+          >
             <g className="mge-grid">
-              {[0, 25, 50, 75, 100].map((p) => { const y = mgeY(p / 100); return <line key={p} x1="0" y1={y} x2="900" y2={y} className={p === 50 ? 'mid' : ''} />; })}
-              {[0, 1, 2, 3, 4, 5].map((s) => <line key={s} className="v" x1={mgeX(s)} y1="0" x2={mgeX(s)} y2="440" />)}
+              {[0, 25, 50, 75, 100].map((p) => { const y = mgeY(p / 100); return <line key={p} x1="0" y1={y} x2={MGE_W} y2={y} className={p === 50 ? 'mid' : ''} />; })}
+              {[0, 1, 2, 3, 4, 5].map((s) => <line key={s} className="v" x1={mgeX(s)} y1="0" x2={mgeX(s)} y2={MGE_H} />)}
             </g>
-            <path className="mge-fill" d={selCh.fill} style={{ fill: selCh.color }} />
-            {MGE_DATA.map((ch) => (
+            <path className="mge-fill" d={`${selCh.d} L${MGE_W} ${mgeY(0)} L0 ${mgeY(0)} Z`} style={{ fill: selCh.color }} />
+            {data.map((ch) => (
               <path key={ch.key} className={'mge-curve' + (ch.key === sel ? ' is-sel' : '')} d={ch.d} style={{ stroke: ch.color, color: ch.color }} />
             ))}
-            {selCh.keys.map((k, i) => (
-              <rect key={i} className="mge-kf" x={k.x - 6} y={k.y - 6} width="12" height="12" style={{ stroke: selCh.color }} />
-            ))}
             <line className="mge-ph" x1={px} y1="0" x2={px} y2={mgeY(0)} />
-            <circle className="mge-ph-top" cx={px} cy="22" r="5" />
+            <circle className="mge-ph-top" cx={px} cy={MGE_TOP} r="5" />
             <circle className="mge-ph-dot" cx={px} cy={py} r="6" style={{ fill: selCh.color }} />
+            {selCh.keys.map((k, i) => (
+              <rect key={i} data-kf={i} className="mge-kf" x={k.x - 7} y={k.y - 7} width="14" height="14" style={{ stroke: selCh.color }} />
+            ))}
           </svg>
         </div>
         <div className="mge-taxis">{[0, 1, 2, 3, 4, 5].map((s) => <span key={s}>{String(s).padStart(2, '0')}s</span>)}</div>
         <div className="mge-legend">
-          {MGE_DATA.map((ch) => (
-            <div key={ch.key} className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')} style={{ '--c': ch.color }}>
+          {data.map((ch) => (
+            <button
+              key={ch.key}
+              type="button"
+              className={'mge-leg' + (ch.key === sel ? ' is-sel' : '')}
+              style={{ '--c': ch.color }}
+              onClick={() => pick(ch.key)}
+              aria-pressed={ch.key === sel}
+            >
               <span className="mge-leg-dot" />
               <T className="mge-leg-name" k={`sec.animation.ch.${ch.key}`} />
-              <span className="mge-leg-val">{Math.round(mgeVal(ch, time) * 100)}%</span>
-            </div>
+              <span className="mge-leg-val">{Math.round(mgeVal(ch, vals[ch.key], time) * 100)}%</span>
+            </button>
           ))}
         </div>
+        <T as="div" className="mge-hint" k="sec.animation.hint" />
       </div>
     </div>
   );
@@ -1159,6 +1277,8 @@ function Home() {
       {/* 07 · FINISHING — full-bleed film instead of the split layout */}
       <FinishingSection beats={SECTIONS[SECTIONS.length - 1].beats} />
 
+      <ContactBanner />
+
       {/* CONTACT */}
       <Contact />
 
@@ -1193,7 +1313,6 @@ function Projects() {
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
-            <MotionMark className="work-mark" />
             <h1><T k="work.title" /><span className="dot">.</span></h1>
           </div>
           <T
@@ -1360,35 +1479,76 @@ function History() {
   const closeLb = () => setLb(null);
   const navLb = (d) => setLb((s) => (s ? { ...s, index: (s.index + d + s.images.length) % s.images.length } : s));
 
-  // Group runs of consecutive paragraphs into centred prose columns; reels and
-  // films break out of that column full-bleed between the groups.
-  const blocks = [];
+  // Each run of paragraphs sits beside the film that follows it, sides
+  // alternating; a run with no film borrows a few reel photos as a collage so
+  // no text stands alone. The photo reel itself breaks out full-bleed.
+  const full = photos.map((p) => p.full);
+  const rows = [];
   let buf = [];
-  const flushProse = (key) => {
-    if (buf.length) {
-      blocks.push(<div className="history-prose reveal" key={'prose-' + key}>{buf}</div>);
-      buf = [];
+  let lent = 0; // next reel photo to lend to a collage
+  const collage = () => {
+    if (lent >= photos.length) return null;
+    const pick = photos.slice(lent, lent + 3);
+    lent += pick.length;
+    return { type: 'collage', items: pick.map((p) => ({ ...p, index: full.indexOf(p.full) })) };
+  };
+  const flush = (key, media) => {
+    if (!buf.length && !media) return;
+    if (media) { rows.push({ key, text: buf, media }); buf = []; return; }
+    // A long run of paragraphs is split into rows of up to three, each with
+    // its own collage, so the page keeps alternating text and pictures.
+    let n = 0;
+    while (buf.length) {
+      const chunk = buf.splice(0, 3);
+      // Never leave a highlighted line dangling at the end of a chunk.
+      if (buf.length && chunk[chunk.length - 1].type === 'lead') buf.unshift(chunk.pop());
+      rows.push({ key: key + '-' + n++, text: chunk, media: collage() });
     }
   };
   story.forEach((b) => {
     if (b.type === 'reel') {
-      flushProse(b.id);
-      if (photos.length) blocks.push(<PhotoReel key={b.id} photos={photos} onOpen={openLb} />);
+      flush(b.id + '-text');
+      rows.push({ key: b.id, reel: true });
     } else if (b.type === 'film') {
-      flushProse(b.id);
-      if (b.video) blocks.push(<HistoryFilm key={b.id} video={b.video} poster={b.poster} />);
+      if (b.video) flush(b.id, { type: 'film', video: b.video, poster: b.poster });
     } else {
-      buf.push(<T as="p" key={b.id} className={b.type === 'lead' ? 'lead' : undefined} list="history.blocks" id={b.id} f="text" />);
+      buf.push(b);
     }
   });
-  flushProse('end');
+  flush('end');
+
+  let side = 0;
+  const blocks = rows.map((r) => {
+    if (r.reel) return photos.length ? <PhotoReel key={r.key} photos={photos} onOpen={openLb} /> : null;
+    const cls = ['history-row', 'reveal', side++ % 2 ? 'flip' : '', r.media ? '' : 'solo', r.text.length ? '' : 'media-only'].filter(Boolean).join(' ');
+    return (
+      <div key={r.key} className={cls}>
+        {r.text.length > 0 && (
+          <div className="history-text">
+            {r.text.map((b) => (
+              <T as="p" key={b.id} className={b.type === 'lead' ? 'lead' : undefined} list="history.blocks" id={b.id} f="text" />
+            ))}
+          </div>
+        )}
+        {r.media?.type === 'film' && <HistoryFilm video={r.media.video} poster={r.media.poster} />}
+        {r.media?.type === 'collage' && (
+          <div className="history-collage">
+            {r.media.items.map((p) => (
+              <button type="button" key={p.id} onClick={() => openLb(full, p.index)} aria-label="Open photo">
+                <img src={p.thumb || p.full} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  });
 
   return (
     <>
       <header className="portfolio-head">
         <div className="portfolio-head-inner reveal">
           <div className="work-title-wrap">
-            <MotionMark className="work-mark" />
             <h1><T k="history.title" /><span className="dot">.</span></h1>
           </div>
           <T as="p" className="head-sub" k="history.sub" />
@@ -1417,6 +1577,7 @@ export default function App() {
   const onAdmin = route === '#/admin';
   const title = usePlain('seo.title');
   useEffect(() => { if (title) document.title = title; }, [title]);
+  useFonts();
   // Don't let the browser restore a previous scroll position on first load —
   // otherwise the deck can open part-way down (at section 01) instead of the hero.
   useEffect(() => {

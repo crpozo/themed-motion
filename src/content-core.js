@@ -136,7 +136,9 @@ export function normalizeDoc(json) {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return doc;
   const src = json.v === 2 ? json : { text: json }; // v1 was a flat text map
   for (const [k, v] of Object.entries(src.text || {})) {
-    if (KEY_RE.test(k) && FIELDS[k] && typeof v === 'string') doc.text[k] = cleanHtml(v, FIELDS[k].kind === 'rich');
+    if (!KEY_RE.test(k) || !FIELDS[k] || typeof v !== 'string') continue;
+    if (FIELDS[k].kind === 'choice') { if (FIELDS[k].options.some((o) => o.v === v)) doc.text[k] = v; }
+    else doc.text[k] = cleanHtml(v, FIELDS[k].kind === 'rich');
   }
   for (const [k, v] of Object.entries(src.media || {})) {
     if (['image', 'video'].includes(FIELDS[k]?.kind) && isMediaPath(v)) doc.media[k] = v;
@@ -191,6 +193,11 @@ export const useMedia = (k) => useContent().get('media', k);
 export const useFlag = (k) => useContent().get('flags', k);
 export const useList = (k) => useContent().get('lists', k);
 export const usePlain = (k) => plainText(useContent().get('text', k));
+// A pick from a fixed set of options (font names etc.) — never anything else.
+export function useChoice(k) {
+  const v = useContent().get('text', k);
+  return FIELDS[k].options.some((o) => o.v === v) ? v : FIELDS[k].def;
+}
 // A link the admin can change — only ever http(s), or it falls back to the default.
 export function useLink(k) {
   const v = usePlain(k).trim();

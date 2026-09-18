@@ -91,6 +91,8 @@ html.route-admin body { background: var(--bg-2); padding-bottom: 0; }
   font-size: 15px; line-height: 1.5; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .adm-rich { min-height: 84px; }
+.adm-select { width: 100%; max-width: 420px; padding: 10px 13px; border: 1px solid #ccc; border-radius: 8px; font: inherit; font-size: 15px; color: var(--ink); background: var(--bg); }
+.adm-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
 /* The inline-edit affordances (dashed outline, side bar) don't fit a form. */
 .tm-editing .adm-input.tm-ed, .tm-editing .adm-input.tm-ed:hover { outline: 0; box-shadow: none; border-radius: 8px; }
 .tm-editing .adm-input.tm-ed:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); background: var(--bg); }

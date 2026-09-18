@@ -188,7 +188,7 @@ function ContentTab() {
   );
 }
 
-const PART = { text: 'text', rich: 'text', image: 'media', video: 'media', flag: 'flags', list: 'lists' };
+const PART = { text: 'text', rich: 'text', choice: 'text', image: 'media', video: 'media', flag: 'flags', list: 'lists' };
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 const isDirty = (c, f) => has(c.draft[PART[f.kind]], f.k);
 const isEdited = (c, f) => {
@@ -237,6 +237,18 @@ function Field({ field }) {
     );
   }
   if (kind === 'list') return <div className="adm-field">{head}<ListField k={k} /></div>;
+  if (kind === 'choice') {
+    const v = c.get('text', k);
+    return (
+      <div className="adm-field">
+        {head}
+        <select className="adm-select" value={field.options.some((o) => o.v === v) ? v : field.def} onChange={(e) => c.set('text', k, e.target.value)} aria-label={label}>
+          {field.options.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
+        </select>
+        {help && <small className="adm-help">{help}</small>}
+      </div>
+    );
+  }
   if (kind === 'image' || kind === 'video') {
     return (
       <div className="adm-field">

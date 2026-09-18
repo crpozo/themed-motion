@@ -63,7 +63,7 @@ export const SECTIONS = [
   },
   {
     id: 'animation', label: 'Animation', title: 'Choreography', em: 'in code.',
-    tags: [['chip', 'Animation'], ['title', 'Graph Editor'], ['sub', 'Value channels · 5.00s · 30 fps'], ['ch.opacity', 'Head Tilt'], ['ch.scale', 'Jaw'], ['ch.posx', 'Top Blink'], ['ch.posy', 'R Shoulder'], ['ch.rotation', 'L Elbow']],
+    tags: [['chip', 'Animation'], ['title', 'Graph Editor'], ['sub', 'Value channels · 5.00s · 30 fps'], ['ch.opacity', 'Head Tilt'], ['ch.scale', 'Jaw'], ['ch.posx', 'Top Blink'], ['ch.posy', 'R Shoulder'], ['ch.rotation', 'L Elbow'], ['hint', 'Try it: tap a channel, drag its diamonds to reshape the curve, drag across the graph to scrub.']],
     beats: [
       ['Animation without limits.', 'Characters are animated using our <b>CritterControl Animation Tool</b>, a software environment designed specifically for animatronics. It lets us craft detailed performances with precise control over motion, timing, and synchronization — and supports hundreds of animations per character, so operators can even create their own.'],
       ['Control to the finest detail.', 'CritterControl lets us prepare performances with precise control over motion curves, keyframes, interpolation, timing, synchronization, triggers, and show sequencing. Using a real-time 3D workflow, we preview, refine, and adjust performances directly around the intended movement of the figure — before and during integration.'],
@@ -165,6 +165,36 @@ const image = (k, label, def) => ({ kind: 'image', k, label, def });
 const video = (k, label, def) => ({ kind: 'video', k, label, def });
 const flag = (k, label, def, help) => ({ kind: 'flag', k, label, def, help });
 const list = (k) => ({ kind: 'list', k, label: LISTS[k].label });
+const choice = (k, label, def, options, help) => ({ kind: 'choice', k, label, def, options, help });
+
+// Typefaces the admin can switch to. `gf` is the Google Fonts request (only
+// weights that family really has — the API rejects unknown ones); the default
+// pair ships in index.html so it needs no request.
+export const FONTS = {
+  heading: {
+    'barlow-condensed': { label: 'Barlow Condensed (default)', family: '"Barlow Condensed"' },
+    oswald: { label: 'Oswald', family: 'Oswald', gf: 'Oswald:wght@400;500;600;700' },
+    'bebas-neue': { label: 'Bebas Neue', family: '"Bebas Neue"', gf: 'Bebas+Neue' },
+    anton: { label: 'Anton', family: 'Anton', gf: 'Anton' },
+    teko: { label: 'Teko', family: 'Teko', gf: 'Teko:wght@400;500;600;700' },
+    'saira-condensed': { label: 'Saira Condensed', family: '"Saira Condensed"', gf: 'Saira+Condensed:wght@500;600;700;800' },
+    'roboto-condensed': { label: 'Roboto Condensed', family: '"Roboto Condensed"', gf: 'Roboto+Condensed:wght@400;500;600;700;800' },
+    archivo: { label: 'Archivo', family: 'Archivo', gf: 'Archivo:wght@500;600;700;800' },
+    montserrat: { label: 'Montserrat', family: 'Montserrat', gf: 'Montserrat:wght@500;600;700;800' },
+  },
+  body: {
+    barlow: { label: 'Barlow (default)', family: 'Barlow' },
+    inter: { label: 'Inter', family: 'Inter', gf: 'Inter:wght@300;400;500;600' },
+    roboto: { label: 'Roboto', family: 'Roboto', gf: 'Roboto:wght@300;400;500;600' },
+    'open-sans': { label: 'Open Sans', family: '"Open Sans"', gf: 'Open+Sans:wght@300;400;500;600' },
+    'work-sans': { label: 'Work Sans', family: '"Work Sans"', gf: 'Work+Sans:wght@300;400;500;600' },
+    'dm-sans': { label: 'DM Sans', family: '"DM Sans"', gf: 'DM+Sans:wght@300;400;500;600' },
+    manrope: { label: 'Manrope', family: 'Manrope', gf: 'Manrope:wght@300;400;500;600' },
+    'source-sans-3': { label: 'Source Sans 3', family: '"Source Sans 3"', gf: 'Source+Sans+3:wght@300;400;500;600' },
+    lato: { label: 'Lato', family: 'Lato', gf: 'Lato:wght@300;400;700' },
+  },
+};
+const fontOptions = (set) => Object.entries(FONTS[set]).map(([v, f]) => ({ v, label: f.label }));
 
 const TAG_LABELS = {
   tag: 'Label on the visual', hint: 'Hint on the visual', structure: 'Slider · left end', body: 'Slider · right end',
@@ -195,6 +225,8 @@ export const GROUPS = [
     fields: [
       flag('page.work', 'Show the “Work” page', false, 'Off = hidden from the menus and not reachable by visitors.'),
       flag('page.history', 'Show the “History” page', true, 'Off = hidden from the menus and not reachable by visitors.'),
+      choice('font.heading', 'Headings font', 'barlow-condensed', fontOptions('heading'), 'Titles, numbers and buttons.'),
+      choice('font.body', 'Text font', 'barlow', fontOptions('body'), 'Paragraphs, menus and labels.'),
       text('seo.title', 'Browser tab title', 'ThemedMotion'),
       text('link.pp', 'P&P Projects link (full https:// address)', 'https://www.ppprojects.com/'),
       image('brand.logo', 'Logo · on light backgrounds', 'assets/themedmotion-logo.png'),
@@ -235,6 +267,14 @@ export const GROUPS = [
     ],
   },
   ...SECTIONS.map(sectionGroup),
+  {
+    id: 'cta', page: 'Home', title: 'Contact banner',
+    fields: [
+      text('cta.title', 'Headline', 'Contact us for more'),
+      text('cta.button', 'Button', "Let's make it move"),
+      image('cta.image', 'Background picture (shown blurred)', 'assets/joey-front.png'),
+    ],
+  },
   {
     id: 'contact', page: 'Home', title: 'Contact',
     fields: [
